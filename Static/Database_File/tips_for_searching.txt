@@ -1,0 +1,29 @@
+# abbrevations..................
+litre -------------- lt
+over size ----------- O/s
+kilogram ------------- kg
+gram ------------------ gm
+
+
+
+
+# key points
+1. search bearings with numbers like '32209' not 'bearing 32209' 
+2. If results not available then search removing an empty space or adding an empty space
+    for example, If 'T138' doesn't gives result try searching 'T 138'.
+     if '1 lt mobil 4 T' doesn't gives result try searching '1 lt mobil 4T' 
+
+3. Note that you need to type full 'swaraj' not just 'swj' while searching.
+4. Search Geniune Gear with part numbers not name.
+5. Search for ford 3000 and not ford 3600 in case of sleeves
+6. Use f instead of farmtrac like f60,f65 not farmtrac 60
+
+# Templates to search specific items................
+1.	Gear ETOP ORIGNAL
+ 
+Gear {name} 
+
+2.	Sleeve ford, farmtrac etc....
+
+Sleeve ford {3000/3610} {size}
+ 

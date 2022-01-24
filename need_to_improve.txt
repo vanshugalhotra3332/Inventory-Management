@@ -1,0 +1,7 @@
+# Improvement needed
+
+1. DRY (Donot Repeat Yourself) partially applicable make it fully applicable.
+    
+2. Code is hardly flexible 
+    Too much complex to add another field in database.
+

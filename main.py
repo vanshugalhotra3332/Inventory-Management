@@ -1415,6 +1415,8 @@ class StoreBook:
             menu_.add_command(label='Box Number', command=lambda sort_by="box_no": search_(sort_by))
             menu_.add_command(label='Description', command=lambda sort_by="description": search_(sort_by))
             menu_.add_command(label='date', command=lambda sort_by="date": search_(sort_by))
+            menu_.add_command(label='quantity', command=lambda sort_by="quantity": search_(sort_by))
+            menu_.add_command(label='warning Quantity', command=lambda sort_by="warning_qty": search_(sort_by))
 
             # top label
             lbl_name = Label(inv_screen, text="Inventory", font=('arial', 30, 'bold'),

@@ -1039,6 +1039,100 @@ class StoreBook:
                     data_list = list(itertools.chain(*data_tuple))
                     treeview.insert('', 'end', values=data_list)
 
+        def save_warning_sheet():
+            warning_command = "SELECT product_name, brand_name, quantity, warning_qty from stock"
+            cursor.execute(warning_command)
+            output_in_tuple = cursor.fetchall()
+            output_list = list(itertools.chain(*output_in_tuple))
+
+            list_needed = []
+            
+            i = 0 
+            while i < int(len(output_list)):
+                a = output_list[i: i+4]
+                i +=4
+                list_needed.append(a)
+            data_list_ = []
+            for sep in list_needed:
+                if sep[2:3] < sep[3:]:
+                    identifier = sep[0]  # name is primary key
+                    data_command = f"SELECT product_name, brand_name, quantity from stock where product_name = '{identifier}'"
+                    cursor.execute(data_command)
+                    data_tuple = cursor.fetchall()
+                    data_list = list(itertools.chain(*data_tuple))
+                    # for warning sheet
+                    data_list_.append(data_list[0])
+                    data_list_.append(data_list[1])
+                    data_list_.append(data_list[2])
+            
+            slice_product_name = slice(0, len(data_list_), 3)  # slicing all product names from list
+ 
+            slice_brand_name = slice(1, len(data_list_), 3)  # slicing all brand names from list
+
+            slice_qty = slice(2, len(data_list_), 3)  # slicing all quantity from list
+
+            product_name_list = data_list_[slice_product_name]
+
+            brand_name_list = data_list_[slice_brand_name]
+
+            qty_list = data_list_[slice_qty]   
+
+            data_dict = {
+                'Product Name': product_name_list,
+
+                'Quantity': qty_list,  # change of order
+ 
+                'Brand': brand_name_list,
+            }
+
+            files = [('Microsoft Excel File', '.xlsx')]
+            save_path_ = filedialog.asksaveasfilename(filetypes=files, initialdir=cur_wd)
+            save_dir = str(save_path_) + '.xlsx'
+
+            if len(save_dir) != 0:
+                writer = pandas.ExcelWriter(save_dir, engine='xlsxwriter')
+                columns=[]
+                for j in data_dict.keys():
+                    columns.append(j)
+
+                index_ = [i for i in range(len(product_name_list))]
+                df = pandas.DataFrame(data_dict, index=index_)
+                df.to_excel(writer, sheet_name='Warnings', index=False, columns=columns)
+
+                workbook = writer.book
+                box_format = workbook.add_format({
+                    'bg_color': '#00FFFF',  # your setting
+                    'bold': True,           # additional stuff...
+                    'text_wrap': True,
+                    'valign': 'top',
+                    'align': 'center',
+                    'border': 1})
+                
+
+                
+                worksheet = writer.sheets['Warnings']
+                worksheet.set_column('A:A', 65)  # for product name
+                worksheet.set_column('B:B', 15)  # for qty
+                worksheet.set_column('C:C', 20)  # for brand
+
+                qty_format = workbook.add_format({
+                    'bg_color': '#FFFF00',  # your setting
+                    'bold': True,           # additional stuff...
+                    'text_wrap': True,
+                    'valign': 'top',
+                    'align': 'center',
+                    'border': 1})
+
+                worksheet.conditional_format(f'B1:B{len(index_)+1}', {'type':     'cell',
+                                        'criteria': '=',
+                                        'value':    0,
+                                        'format':   qty_format})
+
+                writer.save()
+                connection.commit()
+                tkinter.messagebox.showinfo('Success!', 'File Saved Successfully!')
+
+
         def update_finally():
             product_name_up = up_product_name.get()
             tractor_up = up_tractor_name.get()
@@ -1809,6 +1903,7 @@ class StoreBook:
         file_sub.add_cascade(label="Save Record", menu=record_sub)  # f1
         record_sub.add_command(label="Excel Sheet(ctrl-s)", command=save_xlsx)  # f1r1
         record_sub.add_command(label="Database File(ctrl-alt-s)", command=save_db)  # f1r2
+        record_sub.add_command(label="Warnings Sheet", command=save_warning_sheet)  # f1r3
 
         main_menu.add_cascade(label='Tools', menu=tool_sub)  # m2
         tool_sub.add_command(label='Register Brand (Ctrl-r)', command=register_brand_name) # t1

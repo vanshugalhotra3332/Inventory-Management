@@ -26,19 +26,13 @@ try:
     import mysql.connector as mysql
     import numpy as np
     import pandas
-    # import pywhatkit
 
-except ModuleNotFoundError:
-    subprocess.call(['pip', 'install', 'tkcalendar'])
-    subprocess.call(['pip', 'install', 'mysql-connector-python'])
-    subprocess.call(['pip', 'install', 'numpy'])
-    subprocess.call(['pip', 'install', 'pandas'])
-    # subprocess.call(['pip', 'install', 'pywhatkit'])
+except ModuleNotFoundError: # installing dependencies
+    subprocess.call(['pip', 'install', '-r', f'{cur_wd}//requirements.txt'])
     from tkcalendar import Calendar
     import mysql.connector as mysql
     import numpy as np
     import pandas
-    # import pywhatkit
 
 class StoreBook:
     def __init__(self):
@@ -123,15 +117,15 @@ class StoreBook:
                             'box_no', 'Description', 'Quantity', 'Warning Qty']
         # __________________________________styling___________________________________________________
         style.configure("Treeview",
-                background='white',
-                foreground='white',
+                background='mint cream',
+                foreground='black',
                 rowheight=25,
-                feildbackground='white')
+                feildbackground='snow')
 
-        # style.theme_use('alt')
+        # style.theme_use('clam')
         # change color when selected
         style.map('Treeview',
-                    background=[('selected','lime green')])
+                    background=[('selected','gray21')])
 
         # ____________________________________________________functions_________________________________________________________________________
         def export_db(direc):
@@ -153,7 +147,7 @@ class StoreBook:
             connection.commit()
 
             print('File saved successfully!')
-            print('Bye! Fuck You')
+            print('Bye!')
             root.destroy() 
  
         def exit_system(screen):
@@ -944,7 +938,11 @@ class StoreBook:
             }
 
             if len(save_dir) != 0:
-                writer = pandas.ExcelWriter(save_dir, engine='xlsxwriter')
+                try:
+                    writer = pandas.ExcelWriter(save_dir, engine='xlsxwriter')
+                except ModuleNotFoundError:
+                    subprocess.call(["pip", "install", "xlsxwriter"])
+                    writer = pandas.ExcelWriter(save_dir, engine='xlsxwriter')
                 columns=[]
                 for j in data_dict.keys():
                     columns.append(j)

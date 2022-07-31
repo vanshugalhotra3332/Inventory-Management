@@ -1,0 +1,5 @@
+tkcalendar
+pandas
+numpy
+mysql-connector-python
+xlsxwriter

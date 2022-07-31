@@ -1,6 +1,6 @@
 import os
 
-password = 'blc332'
+password = '2332'
 database = 'store_record'
 host = 'localhost'
 user = 'root'
@@ -22,3 +22,5 @@ STATIC_DIR = cur_wd + f'\\{static_folder}'
 ICON_PATH = STATIC_DIR + f'\\{icon_folder}'
 DB_FILE_DIR = STATIC_DIR + f'\\{db_folder}'
 
+#dependencies
+dependencies = ["tkcalendar", "pandas", "numpy", "mysql-connector-python", "xlsxwriter"]

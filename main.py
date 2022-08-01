@@ -1605,8 +1605,7 @@ class StoreBook:
                     cal_window = Toplevel(root)
                     cal_window.title('Calendar')
                     cal_window.geometry('260x250+100+100')
-                    cal = Calendar(cal_window, selectmode="day", year=cur_year, month=cur_month, day=cur_day,
-                                cursor='hand1')
+                    cal = Calendar(cal_window, selectmode="day", year=cur_year, month=int(cur_month), day=cur_day,cursor='hand1')
                     cal.grid(row=0, column=0, padx=3, pady=3)
                     pick_btn = Button(cal_window, text='Select', command=select_date)
                     pick_btn.grid(row=1, column=0)

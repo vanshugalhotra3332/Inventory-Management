@@ -128,11 +128,12 @@ class DatabaseFunctions:
             all_fooking_data.append(fooking_data)
 
         dmy_list = gui_func_provider.int_dateformat_english(sorted_time)  # 5 july 2021
-            
+
         index_mul = []   # index of data which have multiple records
         index_single = []   # single records
         # lets fill the data out
         for index in range(len(all_fooking_data)):
+            print(len(all_fooking_data[index]))
             if len(all_fooking_data[index]) > 12:
                 index_mul.append(index)
 

@@ -6,6 +6,7 @@ import itertools
 from variables import password, user, host, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
 from gui_funcs import GuiFuncs
 import datetime
+from operator import itemgetter
 try:
     from db_connection import cursor , connection
 
@@ -198,4 +199,14 @@ class DatabaseFunctions:
     
         global total_data # will contain both 
         total_data = treeview_s + treeview_m
-        return total_data
+                
+        for data in total_data:
+            data[0] = gui_func_provider.english_to_system_date_format(data[0]) # converting date format for sorting
+        
+        total_data.sort(key = itemgetter(0)) # sorting list based on date, 
+        
+        for data in total_data:
+            data[0] = gui_func_provider.system_to_english_date_format(data[0]) # converting back
+        
+        total_data.reverse()
+        return total_data 

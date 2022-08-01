@@ -110,7 +110,8 @@ class DatabaseFunctions:
         os.system(f'mysql -u root -p%s {database} <"{DB_FILE_DIR}\\{file_name}"'%password)  # import
         print('Imported Successfully')
 
-    def custom_fetching(self, table):
+    def custom_fetching(self, table): # basically this function will, recieves the table name, and then returns the list of records in following format
+        # [[date at front + record - date - image], [].............]
         date_com = f'SELECT DISTINCT(date) from {table}'
         cursor.execute(date_com)
         date_tup = cursor.fetchall()

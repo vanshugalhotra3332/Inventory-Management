@@ -187,7 +187,7 @@ class DatabaseFunctions:
         # and len_mul like, [3, 2.....]
         # now from len_mul we conclude that, first 3 records are of some common date, and next 2 also , then so on....
         
-        # now we will create a list sor, which will create list of list of records of common date, 
+        # now we will create a list sor, which will create list of list of records with common date, 
         # like, [ [[record1], [record2], [record3]], [ [record4], [record5] ]], where each list, will contain list of records on some common date
         iterator = iter(datam)
         sor = [[next(iterator) for _ in range(size)] for size in len_mul]

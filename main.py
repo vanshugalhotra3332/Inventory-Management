@@ -116,10 +116,7 @@ class StoreBook:
         si_search = StringVar()
         so_search = StringVar()
 
-        every_damn_field = ['Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                            'box_no', 'Description', 'Quantity', 'Warning Qty']
-
-        addition_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
+        treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
                             'box_no', 'Description', 'Quantity', 'Warning Qty']
         # __________________________________styling___________________________________________________
         style.configure("Treeview",
@@ -263,7 +260,7 @@ class StoreBook:
             def search_(sort_by):
                 searched = addition_search.get()
                 reca_treeview.search(
-                    sort_by=sort_by, to_search=searched, total_data=total_data, table="recently_added")
+                    sort_by=sort_by, to_search=searched, table="recently_added")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -287,7 +284,7 @@ class StoreBook:
             # treeview
             global reca_treeview
             reca_treeview = CustomTreeview(
-                reca_window, columns=addition_columns)
+                reca_window, columns=treeview_columns)
 
             # search bar
             sb_entry = Entry(
@@ -319,8 +316,7 @@ class StoreBook:
 
             def search_(sort_by):
                 searched = deletion_search.get()
-                rec_treeview.search(sort_by=sort_by, to_search=searched,
-                                    total_data=total_data, table="recently_deleted")
+                rec_treeview.search(sort_by=sort_by, to_search=searched, table="recently_deleted")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -343,7 +339,7 @@ class StoreBook:
 
             # treeview
             global rec_treeview
-            rec_treeview = CustomTreeview(rec_window, columns=addition_columns)
+            rec_treeview = CustomTreeview(rec_window, columns=treeview_columns)
 
             # search bar
             sb_entry = Entry(
@@ -374,43 +370,9 @@ class StoreBook:
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            updation_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                                'box_no', 'Description', 'Quantity', 'Warning Qty']
-
             def _search_(sort_by):
                 searched = updation_search.get()
-                parameter = '%' + f'{searched}' + '%'
-                if searched != 0:
-                    try:
-                        tran_treeview.delete(*tran_treeview.get_children())
-                        command_ = f"SELECT product_name FROM after_update WHERE {sort_by} LIKE '{parameter}'"
-                        cursor.execute(command_)
-                        fetch = cursor.fetchall()
-                        fetch_list = list(itertools.chain(*fetch))
-                        for names in fetch_list:
-                            ts = 0
-                            while ts < len(data_needed):
-                                if names.lower() == data_needed[ts][1].lower() or names.lower() in data_needed[ts][1].lower():
-                                    tran_treeview.insert(
-                                        '', 'end', values=data_needed[ts], tags=('oddrow'))
-                                    tran_treeview.insert(
-                                        '', 'end', values=data_needed[ts+1], tags=('evenrow'))
-                                ts += 2
-                            #
-                            tran_treeview.column('Date', width=80)
-                            tran_treeview.column('Product Name', width=220)
-                            tran_treeview.column('Tractor', width=80)
-                            tran_treeview.column('Brand Name', width=120)
-                            tran_treeview.column('Part No.', width=180)
-                            tran_treeview.column('Code', width=80)
-                            tran_treeview.column('MRP', width=80)
-                            tran_treeview.column('box_no', width=60)
-                            tran_treeview.column('Description', width=240)
-                            tran_treeview.column('Quantity', width=60)
-                            tran_treeview.column('Warning Qty', width=60)
-
-                    except Exception:
-                        print('What the fuck!')
+                tran_treeview.search(sort_by=sort_by, to_search=searched, table="before_update", special_data=total, special_search=True)
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -433,26 +395,7 @@ class StoreBook:
 
             # treeview
             global tran_treeview
-            tran_treeview = ttk.Treeview(
-                tran_window, column=updation_columns, show='headings', height=30, cursor='hand1')
-            scroll_bar = ttk.Scrollbar(
-                tran_window, orient='vertical', command=tran_treeview.yview)
-            tran_treeview.configure(yscroll=scroll_bar.set)
-            scroll_bar.grid(row=2, column=2, sticky='ns')
-            for a in updation_columns:
-                tran_treeview.heading(a, text=a.title())
-            tran_treeview.column('Date', width=80)
-            tran_treeview.column('Product Name', width=220)
-            tran_treeview.column('Tractor', width=80)
-            tran_treeview.column('Brand Name', width=120)
-            tran_treeview.column('Part No.', width=180)
-            tran_treeview.column('Code', width=80)
-            tran_treeview.column('MRP', width=80)
-            tran_treeview.column('box_no', width=60)
-            tran_treeview.column('Description', width=240)
-            tran_treeview.column('Quantity', width=60)
-            tran_treeview.column('Warning Qty', width=60)
-            tran_treeview.grid(row=2, column=0)
+            tran_treeview = CustomTreeview(tran_window, columns=treeview_columns)
 
             # search bar
             sb_entry = Entry(
@@ -470,37 +413,16 @@ class StoreBook:
             tran_treeview.tag_configure('evenrow', background='chartreuse2')
 
             # getting data from database to add in treeview
-            global data_total
-            data_total = func_provider.custom_fetching(table='before_update')
-            data_total_ = func_provider.custom_fetching(table='after_update')
-            total = data_total + data_total_
+            before_data = func_provider.custom_fetching(table='before_update')
+            after_data = func_provider.custom_fetching(table='after_update')
+            global total
+            total = before_data + after_data
 
-            ind_needed = []  # gonna append indexes that we need to sort the data out
-            global data_needed
-            data_needed = []  # data needed to make treeview work
-
-            length_data = len(total)
-            half = int(length_data/2)
-
-            for i in range(length_data):
-                ind_needed.append(i)
-                ind_needed.append(i+half)
-
-            for ind in ind_needed[0:length_data]:
-                data_needed.append(total[ind])
-
-            td = 0
-            while td < len(data_needed):
-                try:
-                    tran_treeview.insert(
-                        '', 'end', data_needed[td], tags=('oddrow'))
-                    tran_treeview.insert(
-                        '', 'end', data_needed[td+1], tags=('evenrow'))
-
-                except Exception:
-                    pass
-                td += 2
-
+            length = int(len(total) / 2)
+            for i in range(0, length):
+                tran_treeview.insert('', 'end', values=total[i], tags=('oddrow'))
+                tran_treeview.insert('', 'end', values=total[i + length], tags=('evenrow'))
+        
         def stock_in():
             si_window = Toplevel(root)
             si_window.title('Stock INs')
@@ -511,13 +433,13 @@ class StoreBook:
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            addition_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
+            treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
                                 'box_no', 'Description', 'Quantity', 'Warning Qty']
 
             def search_(sort_by):
                 searched = si_search.get()
                 si_treeview.search(
-                    sort_by=sort_by, to_search=searched, total_data=total_data, table="stock_in")
+                    sort_by=sort_by, to_search=searched, table="stock_in")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -540,7 +462,7 @@ class StoreBook:
 
             # treeview
             global si_treeview
-            si_treeview = CustomTreeview(si_window, columns=addition_columns)
+            si_treeview = CustomTreeview(si_window, columns=treeview_columns)
             # search bar
             sb_entry = Entry(si_window, textvariable=si_search,
                              width=110, font=('arial', 15))
@@ -569,13 +491,13 @@ class StoreBook:
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            addition_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
+            treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
                                 'box_no', 'Description', 'Quantity', 'Warning Qty']
 
             def search_(sort_by):
                 searched = so_search.get()
                 so_treeview.search(
-                    sort_by=sort_by, to_search=searched, total_data=total_data, table="stock_out")
+                    sort_by=sort_by, to_search=searched, table="stock_out")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -598,7 +520,7 @@ class StoreBook:
 
             # treeview
             global so_treeview
-            so_treeview = CustomTreeview(so_window, columns=addition_columns)
+            so_treeview = CustomTreeview(so_window, columns=treeview_columns)
 
             # search bar
             sb_entry = Entry(so_window, textvariable=so_search,
@@ -1192,7 +1114,6 @@ class StoreBook:
             items = records_treeview.focus()
             data = records_treeview.item(items)
             values_data = data['values']
-
             if len(values_data) != 0:
                 try:
                     def img_picker_():
@@ -1204,18 +1125,18 @@ class StoreBook:
                         gui_func_provider.focus_on(up_screen)
 
                     # previous values
-                    up_product_name.set(values_data[0])
-                    up_tractor_name.set(values_data[1])
-                    up_brand_name.set(values_data[2])
-                    up_part_no.set(values_data[3])
-                    up_code.set(values_data[4])
-                    up_mrp.set(values_data[5])
-                    up_box_no.set(values_data[6])
-                    up_description.set(values_data[7])
-                    up_quantity.set(values_data[8])
-                    up_warning_qty.set(values_data[9])
-                    up_date.set(values_data[10])
-                    up_img.set(values_data[11])
+                    up_product_name.set(values_data[1])
+                    up_tractor_name.set(values_data[2])
+                    up_brand_name.set(values_data[3])
+                    up_part_no.set(values_data[4])
+                    up_code.set(values_data[5])
+                    up_mrp.set(values_data[6])
+                    up_box_no.set(values_data[7])
+                    up_description.set(values_data[8])
+                    up_quantity.set(values_data[9])
+                    up_warning_qty.set(values_data[10])
+                    up_date.set(values_data[0])
+                    # up_img.set(values_data[11])
 
                     global up_screen
                     up_screen = Toplevel(root)
@@ -1317,7 +1238,7 @@ class StoreBook:
             def search_(sort_by):
                 searched = inv_search.get()
                 records_treeview.search(
-                    sort_by=sort_by, to_search=searched, total_data=total_data, table="stock")
+                    sort_by=sort_by, to_search=searched, table="stock")
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
                 inv_screen, text='Sort By', cursor='mouse')
@@ -1366,7 +1287,7 @@ class StoreBook:
 
             # treeview
             global records_treeview
-            records_treeview = CustomTreeview(inv_screen, columns=addition_columns, row=3)
+            records_treeview = CustomTreeview(inv_screen, columns=treeview_columns, row=3)
 
             global total_data
             total_data = func_provider.custom_fetching(table='stock')

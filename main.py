@@ -11,6 +11,7 @@ from register_brand import RegisterBrand
 from db_functions import DatabaseFunctions
 from variables import MYSQL_BIN, db_folder, file_name, cur_wd, STATIC_DIR, DB_FILE_DIR, database, file_name_xl, ICON_PATH, password
 from init_dirs import init_dirs
+from interface import CustomTreeview
 
 init_dirs()  # initializing directories in use
 func_provider = DatabaseFunctions()
@@ -117,9 +118,9 @@ class StoreBook:
 
         every_damn_field = ['Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
                             'box_no', 'Description', 'Quantity', 'Warning Qty']
-        
+
         addition_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                                'box_no', 'Description', 'Quantity', 'Warning Qty']
+                            'box_no', 'Description', 'Quantity', 'Warning Qty']
         # __________________________________styling___________________________________________________
         style.configure("Treeview",
                         background='mint cream',
@@ -249,34 +250,6 @@ class StoreBook:
                     'Error!', f"'{del_name}' product name doesn't exists")
                 gui_func_provider.focus_on(delete_window)
 
-        def search_treeview(sort_by, to_search, treeview, total_data, table):
-            parameter = '%' + f'{to_search}' + '%'
-            if to_search != 0:
-                try:
-                    treeview.delete(*treeview.get_children())
-                    command_ = f"SELECT product_name FROM {table} WHERE {sort_by} LIKE '{parameter}'"
-                    cursor.execute(command_)
-                    fetch = cursor.fetchall()
-                    fetch_list = list(itertools.chain(*fetch))
-                    for names in fetch_list:
-                        for items in total_data:
-                            if names == items[1]:  # items[1] represents the product_name
-                                treeview.insert('', 'end', values=items)
-                                treeview.column('Date', width=80)
-                                treeview.column('Product Name', width=220)
-                                treeview.column('Tractor', width=80)
-                                treeview.column('Brand Name', width=120)
-                                treeview.column('Part No.', width=180)
-                                treeview.column('Code', width=80)
-                                treeview.column('MRP', width=80)
-                                treeview.column('box_no', width=60)
-                                treeview.column('Description', width=240)
-                                treeview.column('Quantity', width=60)
-                                treeview.column('Warning Qty', width=60)
-
-                except TypeError:
-                    pass
-
         def recently_added():
             reca_window = Toplevel(root)
             reca_window.title('Recently Added Records')
@@ -289,8 +262,8 @@ class StoreBook:
 
             def search_(sort_by):
                 searched = addition_search.get()
-                search_treeview(sort_by=sort_by, to_search=searched,
-                                treeview=reca_treeview, total_data=total_data, table="recently_added")
+                reca_treeview.search(
+                    sort_by=sort_by, to_search=searched, total_data=total_data, table="recently_added")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -313,26 +286,8 @@ class StoreBook:
 
             # treeview
             global reca_treeview
-            reca_treeview = ttk.Treeview(
-                reca_window, column=addition_columns, show='headings', height=30, cursor='hand1')
-            scroll_bar = ttk.Scrollbar(
-                reca_window, orient='vertical', command=reca_treeview.yview)
-            reca_treeview.configure(yscroll=scroll_bar.set)
-            scroll_bar.grid(row=2, column=2, sticky='ns')
-            for a in addition_columns:
-                reca_treeview.heading(a, text=a.title())
-            reca_treeview.column('Date', width=80)
-            reca_treeview.column('Product Name', width=220)
-            reca_treeview.column('Tractor', width=80)
-            reca_treeview.column('Brand Name', width=120)
-            reca_treeview.column('Part No.', width=180)
-            reca_treeview.column('Code', width=80)
-            reca_treeview.column('MRP', width=80)
-            reca_treeview.column('box_no', width=60)
-            reca_treeview.column('Description', width=240)
-            reca_treeview.column('Quantity', width=60)
-            reca_treeview.column('Warning Qty', width=60)
-            reca_treeview.grid(row=2, column=0)
+            reca_treeview = CustomTreeview(
+                reca_window, columns=addition_columns)
 
             # search bar
             sb_entry = Entry(
@@ -362,13 +317,10 @@ class StoreBook:
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            deletion_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                                'box_no', 'Description', 'Quantity', 'Warning Qty']
-
             def search_(sort_by):
                 searched = deletion_search.get()
-                search_treeview(sort_by=sort_by, to_search=searched, treeview=rec_treeview,
-                                total_data=total_data, table="recently_deleted")
+                rec_treeview.search(sort_by=sort_by, to_search=searched,
+                                    total_data=total_data, table="recently_deleted")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -391,26 +343,7 @@ class StoreBook:
 
             # treeview
             global rec_treeview
-            rec_treeview = ttk.Treeview(
-                rec_window, column=deletion_columns, show='headings', height=30, cursor='hand1')
-            scroll_bar = ttk.Scrollbar(
-                rec_window, orient='vertical', command=rec_treeview.yview)
-            rec_treeview.configure(yscroll=scroll_bar.set)
-            scroll_bar.grid(row=2, column=2, sticky='ns')
-            for a in deletion_columns:
-                rec_treeview.heading(a, text=a.title())
-            rec_treeview.column('Date', width=80)
-            rec_treeview.column('Product Name', width=220)
-            rec_treeview.column('Tractor', width=80)
-            rec_treeview.column('Brand Name', width=120)
-            rec_treeview.column('Part No.', width=180)
-            rec_treeview.column('Code', width=80)
-            rec_treeview.column('MRP', width=80)
-            rec_treeview.column('box_no', width=60)
-            rec_treeview.column('Description', width=240)
-            rec_treeview.column('Quantity', width=60)
-            rec_treeview.column('Warning Qty', width=60)
-            rec_treeview.grid(row=2, column=0)
+            rec_treeview = CustomTreeview(rec_window, columns=addition_columns)
 
             # search bar
             sb_entry = Entry(
@@ -583,8 +516,8 @@ class StoreBook:
 
             def search_(sort_by):
                 searched = si_search.get()
-                search_treeview(sort_by=sort_by, to_search=searched,
-                                treeview=si_treeview, total_data=total_data, table="stock_in")
+                si_treeview.search(
+                    sort_by=sort_by, to_search=searched, total_data=total_data, table="stock_in")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -607,27 +540,7 @@ class StoreBook:
 
             # treeview
             global si_treeview
-            si_treeview = ttk.Treeview(
-                si_window, column=addition_columns, show='headings', height=30, cursor='hand1')
-            scroll_bar = ttk.Scrollbar(
-                si_window, orient='vertical', command=si_treeview.yview)
-            si_treeview.configure(yscroll=scroll_bar.set)
-            scroll_bar.grid(row=2, column=2, sticky='ns')
-            for a in addition_columns:
-                si_treeview.heading(a, text=a.title())
-            si_treeview.column('Date', width=80)
-            si_treeview.column('Product Name', width=220)
-            si_treeview.column('Tractor', width=80)
-            si_treeview.column('Brand Name', width=120)
-            si_treeview.column('Part No.', width=180)
-            si_treeview.column('Code', width=80)
-            si_treeview.column('MRP', width=80)
-            si_treeview.column('box_no', width=60)
-            si_treeview.column('Description', width=240)
-            si_treeview.column('Quantity', width=60)
-            si_treeview.column('Warning Qty', width=60)
-            si_treeview.grid(row=2, column=0)
-
+            si_treeview = CustomTreeview(si_window, columns=addition_columns)
             # search bar
             sb_entry = Entry(si_window, textvariable=si_search,
                              width=110, font=('arial', 15))
@@ -661,7 +574,8 @@ class StoreBook:
 
             def search_(sort_by):
                 searched = so_search.get()
-                search_treeview(sort_by=sort_by, to_search=searched, treeview=so_treeview, total_data=total_data, table="stock_out")
+                so_treeview.search(
+                    sort_by=sort_by, to_search=searched, total_data=total_data, table="stock_out")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -684,26 +598,7 @@ class StoreBook:
 
             # treeview
             global so_treeview
-            so_treeview = ttk.Treeview(
-                so_window, column=addition_columns, show='headings', height=30, cursor='hand1')
-            scroll_bar = ttk.Scrollbar(
-                so_window, orient='vertical', command=so_treeview.yview)
-            so_treeview.configure(yscroll=scroll_bar.set)
-            scroll_bar.grid(row=2, column=2, sticky='ns')
-            for a in addition_columns:
-                so_treeview.heading(a, text=a.title())
-            so_treeview.column('Date', width=80)
-            so_treeview.column('Product Name', width=220)
-            so_treeview.column('Tractor', width=80)
-            so_treeview.column('Brand Name', width=120)
-            so_treeview.column('Part No.', width=180)
-            so_treeview.column('Code', width=80)
-            so_treeview.column('MRP', width=80)
-            so_treeview.column('box_no', width=60)
-            so_treeview.column('Description', width=240)
-            so_treeview.column('Quantity', width=60)
-            so_treeview.column('Warning Qty', width=60)
-            so_treeview.grid(row=2, column=0)
+            so_treeview = CustomTreeview(so_window, columns=addition_columns)
 
             # search bar
             sb_entry = Entry(so_window, textvariable=so_search,
@@ -1421,7 +1316,8 @@ class StoreBook:
 
             def search_(sort_by):
                 searched = inv_search.get()
-                search_treeview(sort_by=sort_by, to_search=searched, treeview=records_treeview, total_data=total_data, table="stock")
+                records_treeview.search(
+                    sort_by=sort_by, to_search=searched, total_data=total_data, table="stock")
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
                 inv_screen, text='Sort By', cursor='mouse')
@@ -1470,27 +1366,8 @@ class StoreBook:
 
             # treeview
             global records_treeview
-            records_treeview = ttk.Treeview(
-                inv_screen, column=addition_columns, show='headings', height=30, cursor='hand1')
-            scroll_bar = ttk.Scrollbar(
-                inv_screen, orient='vertical', command=records_treeview.yview)
-            records_treeview.configure(yscroll=scroll_bar.set)
-            scroll_bar.grid(row=3, column=2, sticky='ns')
-            for a in addition_columns:
-                records_treeview.heading(a, text=a.title())
-            records_treeview.column('Date', width=80)
-            records_treeview.column('Product Name', width=220)
-            records_treeview.column('Tractor', width=80)
-            records_treeview.column('Brand Name', width=120)
-            records_treeview.column('Part No.', width=180)
-            records_treeview.column('Code', width=80)
-            records_treeview.column('MRP', width=80)
-            records_treeview.column('box_no', width=60)
-            records_treeview.column('Description', width=300)
-            records_treeview.column('Quantity', width=60)
-            records_treeview.column('Warning Qty', width=80)
-            records_treeview.grid(row=3, column=0)
-            
+            records_treeview = CustomTreeview(inv_screen, columns=addition_columns, row=3)
+
             global total_data
             total_data = func_provider.custom_fetching(table='stock')
             for treeview_data in total_data:

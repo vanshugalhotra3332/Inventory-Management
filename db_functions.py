@@ -128,7 +128,7 @@ class DatabaseFunctions:
             fooking_data = list(itertools.chain(*tup))
             all_fooking_data.append(fooking_data)
 
-        dmy_list = gui_func_provider.int_dateformat_english(sorted_time)  # 5 july 2021
+        dmy_list = gui_func_provider.convert_all_dates_to_english(sorted_time)  # 5 july 2021
 
         index_mul = []   # index of data which have multiple records
         index_single = []   # single records

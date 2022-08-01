@@ -67,7 +67,7 @@ class StoreBook:
 
         cur_date_list = [f'{cur_year}-{cur_month}-{cur_day}']
         print(cur_date_list)
-        today_date = gui_func_provider.int_dateformat_english(cur_date_list)
+        today_date = gui_func_provider.convert_all_dates_to_english(cur_date_list)
   
         # string vars
         add_product_name = StringVar()

@@ -1,5 +1,5 @@
 from db_functions import DatabaseFunctions
-from variables import MYSQL_BIN, db_folder, file_name, cur_wd, STATIC_DIR, DB_FILE_DIR, database, file_name_xl, ICON_PATH
+from variables import MYSQL_BIN, db_folder, file_name, cur_wd, STATIC_DIR, DB_FILE_DIR, database, file_name_xl, ICON_PATH, password
 from init_dirs import init_dirs
 
 init_dirs()  # initializing directories in use
@@ -43,7 +43,6 @@ class StoreBook:
         style = ttk.Style()
 
         # ________________________variables
-        password = 'blc332'
         
         # Objects
         Registrar = RegisterBrand()
@@ -55,6 +54,7 @@ class StoreBook:
         button_size = 17
         cal_text = "📆"  # type text if doesn't support unicode
         img_text = "pick"  # type text if doesn't support unicode
+
         # dates etc
         now = datetime.datetime.now()
         cur_year = now.year
@@ -129,9 +129,9 @@ class StoreBook:
 
         # ____________________________________________________functions_________________________________________________________________________
         def export_db(direc):
-            os.chdir(MYSQL_BIN)
+            os.chdir(MYSQL_BIN) # changing the directory to MYSQL Bin folder where mysqldump is located
             os.system(f'mysqldump -u root -p%s {database} > "{direc}"' % password)   # export
-            tkinter.messagebox.showinfo('Success!', 'File Saved Successfully')
+            tkinter.messagebox.showinfo('Success!', 'Database File Saved Successfully')
             os.chdir(cur_wd)
 
         def end_func():
@@ -140,13 +140,9 @@ class StoreBook:
             export_db(dir_)
             export_xlsx(dir_xl)
             os.chdir(DB_FILE_DIR)
-            os.system(f'echo y| cacls {file_name} /P everyone:n')  # lock
-
-            # pywhatkit.sendwhatmsg('+91914933664', 'hey')
-            # cursor.execute('DROP TABLE stock')
+            # os.system(f'echo y| cacls {file_name} /P everyone:n')  # locking the database file to avoid unintended deletion or updation
             connection.commit()
 
-            print('File saved successfully!')
             print('Bye!')
             root.destroy() 
  
@@ -184,7 +180,7 @@ class StoreBook:
             del_name = del_product_name.get()
             all_products = func_provider.get_list_from_database('stock', 'product_name')
 
-            for i in  range(len(all_products)):
+            for i in range(len(all_products)): # converting to lower case 
                 all_products[i] = all_products[i].lower()
 
             if del_name.lower() in all_products:
@@ -215,7 +211,7 @@ class StoreBook:
                         cursor.execute(insd_command, del_data)
                         connection.commit()
 
-                    except mysql.errors.IntegrityError:
+                    except mysql.errors.IntegrityError: # if we have deleted this product already, then we will just update the data 
                         upd_command = f"UPDATE recently_deleted SET tractor='{rd_tractor}',part_number='{rd_part}',"\
                                     f"code='{rd_code}',mrp={rd_mrp},box_no='{rd_box}',description='{rd_desc}',quantity={rd_qty},"\
                                     f"warning_qty={rd_war},date='{str(current_date)}',image='{rd_img}'"\
@@ -223,7 +219,7 @@ class StoreBook:
                         cursor.execute(upd_command)
                         connection.commit()
 
-                    if rd_qty == 0:
+                    if rd_qty == 0: # if quantity for product is 0 then and only then it can be deleted
                         com = f'DELETE FROM stock where product_name = "{del_name}"'
                         cursor.execute(com)
                         connection.commit()
@@ -1131,7 +1127,7 @@ class StoreBook:
                 tkinter.messagebox.showinfo('Success!', 'File Saved Successfully!')
 
 
-        def update_finally():
+        def update_finally(_event=None):
             product_name_up = up_product_name.get()
             tractor_up = up_tractor_name.get()
             brand_name_up = up_brand_name.get()
@@ -1370,8 +1366,9 @@ class StoreBook:
                 except IndexError:
                     tkinter.messagebox.showerror("Can't Proceed", "Try Doing Empty Search and Then Press Control-u")
                     inv_screen.destroy()
-
-        def inventory():
+                # shortcut key
+                up_screen.bind('<Control-u>', update_finally)
+        def inventory(_event=None):
             global inv_screen
             inv_screen = Toplevel(root)
             inv_screen.title('Inventory')
@@ -1922,13 +1919,14 @@ class StoreBook:
         
         # bindings for shortcut keys
         root.bind('<Control-r>', register_brand_name)        
-        root.bind('<Control-i>', add_inventory)        
+        root.bind('<Control-Alt-i>', add_inventory)    # for adding new product    
         root.bind('<Control-Alt-r>', update_brand_name)    # not working    
         root.bind('<Control-w>', check_warnings)        
         root.bind('<Control-s>', save_xlsx)      
         root.bind('<Control-t>', total_stock)      
         root.bind('<Control-m>', update_mrp)      
         root.bind('<Control-d>', delete_product)      
+        root.bind('<Control-i>', inventory)  # to open inventory window    
         root.bind('<Control-Alt-s>', save_db)  # not working 
 
         root.protocol("WM_DELETE_WINDOW", end_func)    

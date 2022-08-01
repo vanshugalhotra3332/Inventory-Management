@@ -3,7 +3,7 @@ import tkinter.messagebox
 import sys
 import os
 import itertools
-from variables import password, user, host, database, file_name, MYSQL_BIN, DB_FILE_DIR
+from variables import password, user, host, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
 from gui_funcs import GuiFuncs
 import datetime
 try:
@@ -119,7 +119,7 @@ class DatabaseFunctions:
         sorted_time = sorted(all_dates, key=lambda g: datetime.datetime.strptime(g, "%Y-%m-%d")
                                 .strftime("%Y-%m-%d"))  # sorts time in ascending order
         sorted_time.reverse() # descending order
-        all_fooking_data = []
+        all_fooking_data = [] # this list will contain list of data for each date, 
         for time in sorted_time:
             com = f'SELECT * from {table} where date="{time}"'
             cursor.execute(com)
@@ -133,58 +133,68 @@ class DatabaseFunctions:
         index_single = []   # single records
         # lets fill the data out
         for index in range(len(all_fooking_data)):
-            print(len(all_fooking_data[index]))
-            if len(all_fooking_data[index]) > 12:
+            if len(all_fooking_data[index]) > db_fields: # if we have multiple data records on same date
                 index_mul.append(index)
 
             else:
-                index_single.append(index)
+                index_single.append(index) # if we have only one record of data on a particular date
 
         data_copy = all_fooking_data.copy()
-        date_data_dict = {}
+        date_data_dict = {} # this dict will contain all records corresponding to its data, like
+        # { "3 Aug 2022": [record 1, record 2], "1 Aug 2022": [record 1, ..] }
+        # where record means all 12 database fields, product_name ... to image
         for key in dmy_list:
             for value in data_copy:
                 date_data_dict[key] = value
                 data_copy.remove(value)
                 break
         
-        datas = []  # for single data
+        datas = []  # for single data, this will contain all the single_records whose date and image is removed
         datam = []  # for multiple data
         
-        for ix in index_single:             # getting all data for 1 day 1 record removing date and image
-            das = date_data_dict[dmy_list[ix]]
-            del das[10:]
-            datas.append(das)
+        for ix in index_single:    # getting all data for 1 day 1 record removing date and image
+            das = date_data_dict[dmy_list[ix]] # das will contain list of single record, fetched from dictionary
+            del das[10:] # removing date and image information from our list which contain single_record, cuz it is not needed 
+            datas.append(das) # now appending the record to datas, 
         
         for m in index_mul:  # getting all data for 1 day multiple records removing date and image
-            dam = date_data_dict[dmy_list[m]]
+            dam = date_data_dict[dmy_list[m]] # dam will contain list of multiple records, means its length will be > 12
             lg = len(dam)
-            tr = int(lg/12)
-            sorted_list = [dam[i:i+12] for i in range(0,lg,12)]
-            for items in sorted_list:
-                del items[10:]
-                datam.append(items)
-
-        treeview_s = []  # list to store data that will be added to treeview 
-        treeview_m = []
-        for lis in range(len(datas)):
-            datas[lis].insert(0, dmy_list[index_single[lis]])  # gonna append first element as date 
-            treeview_s.append(datas[lis])
+            splited_list = [dam[i:i+db_fields] for i in range(0,lg,db_fields)] # the splited list will contain list of each record seperated from multiple records,,
+            # like, splited_list  = [[record1], [record2]] from [record1, record2]
+            for items in splited_list:
+                del items[10:] # removing the date and image information
+                datam.append(items) # finally appending the list
         
-        len_mul = [] # gonna store length of records of each day
+        treeview_s = []  # list to store data that will be added to treeview 
+        # datas is like,  [[record1], [record2].....]
+        # treeview_s will be like, [[date + record1], [date + record2]....]
+        treeview_m = []
+        for lis in range(len(datas)): # datas[lis] represents each record list, 
+            datas[lis].insert(0, dmy_list[index_single[lis]])  # inserting date on which this particular record was created or updated, inserting at position 0 means starting
+            treeview_s.append(datas[lis]) 
+        
+        len_mul = [] # gonna store length of records for each day
         for x in index_mul:
-            dat = date_data_dict[dmy_list[x]]
-            len_mul.append(int(len(dat)/12))    # appending
+            dat = date_data_dict[dmy_list[x]] # dat will include list of records, on a specific date, 
+            # like, dat = [record1, record2,......] based on some particular date
+            len_mul.append(int(len(dat)/db_fields))    # appending the calculated, number_of_records on a specific date, say 3 records on 2 Aug 2022 something like that
+            # len_mul will look like [2,3,4,2,3,4......]
 
-        # creating list like [date, data] for multiple records 
+        # so now we have, datam like.. [[record1], [record2], [record3], [record4], [record5].......]
+        # and len_mul like, [3, 2.....]
+        # now from len_mul we conclude that, first 3 records are of some common date, and next 2 also , then so on....
+        
+        # now we will create a list sor, which will create list of list of records of common date, 
+        # like, [ [[record1], [record2], [record3]], [ [record4], [record5] ]], where each list, will contain list of records on some common date
         iterator = iter(datam)
         sor = [[next(iterator) for _ in range(size)] for size in len_mul]
-
+        
         for lim in range(len(sor)):
-                for som in sor[lim]:
-                    som.insert(0, dmy_list[index_mul[lim]])
-                    treeview_m.append(som)
-
-        global total_data
+            for som in sor[lim]:
+                som.insert(0, dmy_list[index_mul[lim]]) # inserting that common date on these records
+                treeview_m.append(som) # now finally appending each record list, with date info attached to the treeview_m list
+    
+        global total_data # will contain both 
         total_data = treeview_s + treeview_m
         return total_data

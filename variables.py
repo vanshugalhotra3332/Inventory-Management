@@ -22,5 +22,8 @@ STATIC_DIR = cur_wd + f'\\{static_folder}'
 ICON_PATH = STATIC_DIR + f'\\{icon_folder}'
 DB_FILE_DIR = STATIC_DIR + f'\\{db_folder}'
 
+# database
+db_fields = 12
+
 #dependencies
 dependencies = ["tkcalendar", "pandas", "numpy", "mysql-connector-python", "xlsxwriter"]

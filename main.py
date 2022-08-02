@@ -19,9 +19,6 @@ func_provider.init_db(database)   # initializing database for use
 # func_provider.import_data()
 func_provider.init_tables()   # initializing tables in use
 
-# import xlrd #  pip install xlrd==1.2.0
-
-
 try:
     from tkcalendar import Calendar
     import mysql.connector as mysql
@@ -316,7 +313,8 @@ class StoreBook:
 
             def search_(sort_by):
                 searched = deletion_search.get()
-                rec_treeview.search(sort_by=sort_by, to_search=searched, table="recently_deleted")
+                rec_treeview.search(
+                    sort_by=sort_by, to_search=searched, table="recently_deleted")
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -372,7 +370,8 @@ class StoreBook:
 
             def _search_(sort_by):
                 searched = updation_search.get()
-                tran_treeview.search(sort_by=sort_by, to_search=searched, table="before_update", special_data=total, special_search=True)
+                tran_treeview.search(sort_by=sort_by, to_search=searched,
+                                     table="before_update", special_data=total, special_search=True)
 
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
@@ -395,7 +394,8 @@ class StoreBook:
 
             # treeview
             global tran_treeview
-            tran_treeview = CustomTreeview(tran_window, columns=treeview_columns)
+            tran_treeview = CustomTreeview(
+                tran_window, columns=treeview_columns)
 
             # search bar
             sb_entry = Entry(
@@ -420,9 +420,11 @@ class StoreBook:
 
             length = int(len(total) / 2)
             for i in range(0, length):
-                tran_treeview.insert('', 'end', values=total[i], tags=('oddrow'))
-                tran_treeview.insert('', 'end', values=total[i + length], tags=('evenrow'))
-        
+                tran_treeview.insert(
+                    '', 'end', values=total[i], tags=('oddrow'))
+                tran_treeview.insert(
+                    '', 'end', values=total[i + length], tags=('evenrow'))
+
         def stock_in():
             si_window = Toplevel(root)
             si_window.title('Stock INs')
@@ -1287,7 +1289,8 @@ class StoreBook:
 
             # treeview
             global records_treeview
-            records_treeview = CustomTreeview(inv_screen, columns=treeview_columns, row=3)
+            records_treeview = CustomTreeview(
+                inv_screen, columns=treeview_columns, row=3)
 
             global total_data
             total_data = func_provider.custom_fetching(table='stock')

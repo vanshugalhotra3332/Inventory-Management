@@ -1,22 +1,21 @@
-import itertools
 import subprocess
-from tkinter import filedialog, ttk
 import datetime
 import os
 import tkinter.messagebox
+from tkinter import filedialog, ttk
 from tkinter import *
+
 from db_connection import cursor, connection
 from gui_funcs import GuiFuncs
 from register_brand import RegisterBrand
 from db_functions import DatabaseFunctions
-from variables import MYSQL_BIN, db_folder, file_name, cur_wd, STATIC_DIR, DB_FILE_DIR, database, file_name_xl, ICON_PATH, password
+from variables import MYSQL_BIN, file_name, cur_wd, DB_FILE_DIR, database, file_name_xl, ICON_PATH, password
 from init_dirs import init_dirs
 from interface import CustomTreeview
 
 init_dirs()  # initializing directories in use
 func_provider = DatabaseFunctions()
 func_provider.init_db(database)   # initializing database for use
-# func_provider.import_data()
 func_provider.init_tables()   # initializing tables in use
 
 try:
@@ -123,8 +122,6 @@ class StoreBook:
                         rowheight=25,
                         feildbackground='snow')
 
-        # style.theme_use('clam')
-        # change color when selected
         style.map('Treeview',
                   background=[('selected', 'gray21')])
 
@@ -147,8 +144,6 @@ class StoreBook:
             os.chdir(DB_FILE_DIR)
             # os.system(f'echo y| cacls {file_name} /P everyone:n')  # locking the database file to avoid unintended deletion or updation
             connection.commit()
-
-            print('Bye!')
             root.destroy()
 
         def exit_system(screen):
@@ -269,13 +264,9 @@ class StoreBook:
             menu_.add_command(
                 label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
             menu_.add_command(
-                label='Part Number', command=lambda sort_by="part_number": search_(sort_by))
-            menu_.add_command(
                 label='MRP', command=lambda sort_by="mrp": search_(sort_by))
             menu_.add_command(label='Box Number',
                               command=lambda sort_by="box_no": search_(sort_by))
-            menu_.add_command(
-                label='Description', command=lambda sort_by="description": search_(sort_by))
             menu_.add_command(
                 label='date', command=lambda sort_by="date": search_(sort_by))
 
@@ -290,7 +281,7 @@ class StoreBook:
             sb_entry.grid(row=1, column=0)
 
             sb_entry.bind('<KeyRelease>', lambda event,
-                          sort_by='product_name': search_(sort_by))
+                          sort_by=None: search_(sort_by))
             search_btn = Button(reca_window, text="Search", bd=1, pady=1, padx=1,
                                 relief=RIDGE, overrelief=SUNKEN, cursor='mouse', font=('arial', 8, 'italic'),
                                 bg='snow')
@@ -326,13 +317,9 @@ class StoreBook:
             menu_.add_command(
                 label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
             menu_.add_command(
-                label='Part Number', command=lambda sort_by="part_number": search_(sort_by))
-            menu_.add_command(
                 label='MRP', command=lambda sort_by="mrp": search_(sort_by))
             menu_.add_command(label='Box Number',
                               command=lambda sort_by="box_no": search_(sort_by))
-            menu_.add_command(
-                label='Description', command=lambda sort_by="description": search_(sort_by))
             menu_.add_command(
                 label='date', command=lambda sort_by="date": search_(sort_by))
 
@@ -346,7 +333,7 @@ class StoreBook:
             sb_entry.grid(row=1, column=0)
 
             sb_entry.bind('<KeyRelease>', lambda event,
-                          sort_by='product_name': search_(sort_by))
+                          sort_by=None: search_(sort_by))
             search_btn = Button(rec_window, text="Search", bd=1, pady=1, padx=1,
                                 relief=RIDGE, overrelief=SUNKEN, cursor='mouse', font=('arial', 8, 'italic'),
                                 bg='snow')
@@ -383,13 +370,9 @@ class StoreBook:
             menu_.add_command(
                 label='Brand Name', command=lambda sort_by="brand_name": _search_(sort_by))
             menu_.add_command(
-                label='Part Number', command=lambda sort_by="part_number": _search_(sort_by))
-            menu_.add_command(
                 label='MRP', command=lambda sort_by="mrp": _search_(sort_by))
             menu_.add_command(
                 label='Box Number', command=lambda sort_by="box_no": _search_(sort_by))
-            menu_.add_command(
-                label='Description', command=lambda sort_by="description": _search_(sort_by))
             menu_.add_command(
                 label='date', command=lambda sort_by="date": _search_(sort_by))
 
@@ -408,7 +391,7 @@ class StoreBook:
                                 bg='snow')
             search_btn.grid(row=1, column=1)
             sb_entry.bind('<KeyRelease>', lambda event,
-                          sort_by='product_name': _search_(sort_by))
+                          sort_by=None: _search_(sort_by))
 
             tran_treeview.tag_configure('oddrow', background='tomato')
             tran_treeview.tag_configure('evenrow', background='chartreuse2')
@@ -436,9 +419,6 @@ class StoreBook:
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                                'box_no', 'Description', 'Quantity', 'Warning Qty']
-
             def search_(sort_by):
                 searched = si_search.get()
                 si_treeview.search(
@@ -453,13 +433,9 @@ class StoreBook:
             menu_.add_command(
                 label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
             menu_.add_command(
-                label='Part Number', command=lambda sort_by="part_number": search_(sort_by))
-            menu_.add_command(
                 label='MRP', command=lambda sort_by="mrp": search_(sort_by))
             menu_.add_command(label='Box Number',
                               command=lambda sort_by="box_no": search_(sort_by))
-            menu_.add_command(
-                label='Description', command=lambda sort_by="description": search_(sort_by))
             menu_.add_command(
                 label='date', command=lambda sort_by="date": search_(sort_by))
 
@@ -472,7 +448,7 @@ class StoreBook:
             sb_entry.grid(row=1, column=0)
 
             sb_entry.bind('<KeyRelease>', lambda event,
-                          sort_by='product_name': search_(sort_by))
+                          sort_by=None: search_(sort_by))
             search_btn = Button(si_window, text="Search", bd=1, pady=1, padx=1,
                                 relief=RIDGE, overrelief=SUNKEN, cursor='mouse', font=('arial', 8, 'italic'),
                                 bg='snow')
@@ -494,9 +470,6 @@ class StoreBook:
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                                'box_no', 'Description', 'Quantity', 'Warning Qty']
-
             def search_(sort_by):
                 searched = so_search.get()
                 so_treeview.search(
@@ -511,13 +484,9 @@ class StoreBook:
             menu_.add_command(
                 label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
             menu_.add_command(
-                label='Part Number', command=lambda sort_by="part_number": search_(sort_by))
-            menu_.add_command(
                 label='MRP', command=lambda sort_by="mrp": search_(sort_by))
             menu_.add_command(label='Box Number',
                               command=lambda sort_by="box_no": search_(sort_by))
-            menu_.add_command(
-                label='Description', command=lambda sort_by="description": search_(sort_by))
             menu_.add_command(
                 label='date', command=lambda sort_by="date": search_(sort_by))
 
@@ -531,7 +500,7 @@ class StoreBook:
             sb_entry.grid(row=1, column=0)
 
             sb_entry.bind('<KeyRelease>', lambda event,
-                          sort_by='product_name': search_(sort_by))
+                          sort_by=None: search_(sort_by))
             search_btn = Button(so_window, text="Search", bd=1, pady=1, padx=1,
                                 relief=RIDGE, overrelief=SUNKEN, cursor='mouse', font=('arial', 8, 'italic'),
                                 bg='snow')
@@ -543,6 +512,7 @@ class StoreBook:
             for treeview_data in total_data:
                 so_treeview.insert('', 'end', values=treeview_data)
 
+        # TODO: Improve this function, finding only product_name is difficult
         def delete_product(_event=None):
             global delete_window
             delete_window = Toplevel(root)
@@ -620,8 +590,6 @@ class StoreBook:
 
             db_part_numbers = func_provider.fetch(
                 table='stock', field_list=['part_number'])
-            for i in range(len(db_part_numbers)):
-                db_part_numbers[i] = db_part_numbers[i].lower()
 
             if file_path != '':
                 record_df = pandas.read_excel(file_path, sheet_name=0)
@@ -632,7 +600,7 @@ class StoreBook:
 
                     db_part = []
                     for i in range(len(db_part_numbers)):
-                        if db_part_numbers[i] in excel_parts:
+                        if db_part_numbers[i].lower() in excel_parts:
                             db_part.append(db_part_numbers[i])
 
                     mrp_part = []
@@ -673,7 +641,6 @@ class StoreBook:
 
         def update_mrp(_event=None):
             def pdf_picker():
-                # files = [ ('Microsoft Excel File','.xlsx'), ('Microsoft Excel File','.xlsx')]
                 files = [('Microsoft Excel File', '.xlsx'),
                          ('Microsoft Excel File', '.xls')]
                 open_path_ = filedialog.askopenfilename(
@@ -855,7 +822,6 @@ class StoreBook:
                 'stock', field_list=['product_name', 'brand_name', 'quantity', 'warning_qty'])
 
             list_needed = []
-
             i = 0
             while i < int(len(output_list)):
                 a = output_list[i: i+4]
@@ -863,16 +829,8 @@ class StoreBook:
                 list_needed.append(a)
 
             for sep in list_needed:
-                if sep[2:3] < sep[3:]:
-                    identifier = sep[0]  # name is primary key
-
-                    conditions = {
-                        'product_name': ['=', f"'{identifier}'"]
-                    }
-                    data_list = func_provider.fetch(table='stock', field_list=[
-                                                    'product_name', 'brand_name', 'quantity'], conditions=conditions)
-
-                    treeview.insert('', 'end', values=data_list)
+                if sep[2] < sep[3]:  # if quatity < warning_qty
+                    treeview.insert('', 'end', values=sep)
 
         def save_warning_sheet():
             output_list = func_provider.fetch(
@@ -887,19 +845,11 @@ class StoreBook:
                 list_needed.append(a)
             data_list_ = []
             for sep in list_needed:
-                if sep[2:3] < sep[3:]:
-                    identifier = sep[0]  # name is primary key
-       
-                    conditions = {
-                        'product_name': ['=', f"'{identifier}'"]
-                    }
-                    data_list = func_provider.fetch(table='stock', field_list=[
-                                                    'product_name', 'brand_name', 'quantity'], conditions=conditions)
-
+                if sep[2] < sep[3]:
                     # for warning sheet
-                    data_list_.append(data_list[0])
-                    data_list_.append(data_list[1])
-                    data_list_.append(data_list[2])
+                    data_list_.append(sep[0])
+                    data_list_.append(sep[1])
+                    data_list_.append(sep[2])
 
             # slicing all product names from list
             slice_product_name = slice(0, len(data_list_), 3)
@@ -1023,13 +973,14 @@ class StoreBook:
             elif img_up == '':
                 up_img.set(None)
 
-            else:                
+            else:
                 conditions = {
                     'product_name': ['=', f"'{product_name_up}'"]
                 }
 
-                old_data = func_provider.fetch(table='stock',conditions=conditions)
-                
+                old_data = func_provider.fetch(
+                    table='stock', conditions=conditions)
+
                 old_data[10] = str(current_date)
                 old_name = old_data[0]
                 old_tractor = old_data[1]
@@ -1407,18 +1358,8 @@ class StoreBook:
                         recents_treeview.insert('', 'end', values=data)
 
                         add_screen.destroy()
-                        add_product_name.set('')
-                        add_tractor_name.set('')
-                        add_brand_name.set('')
-                        add_code.set('')
-                        add_part_no.set('')
-                        add_description.set('')
-                        add_date.set('')
-                        add_img.set('')
-                        add_box_no.set('')
-                        add_quantity.set('')
-                        add_warning_qty.set('')
-                        add_mrp.set('')
+                        reset(add_product_name, add_tractor_name, add_brand_name, add_code, add_part_no,
+                              add_description, add_date, add_img, add_box_no, add_quantity, add_warning_qty, add_mrp)
 
                     else:
                         tkinter.messagebox.showerror(
@@ -1461,38 +1402,11 @@ class StoreBook:
                 def store_br(br_name):
                     add_brand_name.set(br_name)
 
-                def suggest_brand(_event=None):
-                    typed = add_brand_name.get()
-                    all_brands = func_provider.fetch('brands', ['name'])
-                    for i in range(len(all_brands)):
-                        all_brands[i] = all_brands[i].lower()
-
-                    for name in all_brands:
-                        if typed != '':
-                            if name.startswith(typed):
-                                def auto_complete(_event=None):
-                                    for brands in all_brands:
-                                        if brands.startswith(typed):
-                                            add_brand_name.set(brands)
-
-                                entry_name.bind('<Tab>', auto_complete)
-
-                def suggest_trac(_event=None):
-                    typed = add_tractor_name.get()
-                    all_brands = func_provider.fetch(
-                        'stock', ['DISTINCT(tractor)'])
-                    for i in range(len(all_brands)):
-                        all_brands[i] = all_brands[i].lower()
-
-                    for name in all_brands:
-                        if typed != '':
-                            if name.startswith(typed):
-                                def auto_complete(_event=None):
-                                    for brands in all_brands:
-                                        if brands.startswith(typed):
-                                            add_tractor_name.set(brands)
-
-                                entry_trac.bind('<Tab>', auto_complete)
+                def auto_complete(total_values, textvar):
+                    to_match = textvar.get().lower()
+                    for items in total_values:
+                        if items.lower().startswith(to_match):
+                            textvar.set(items.title())
 
                 global add_screen
                 add_screen = Toplevel(root)
@@ -1538,7 +1452,13 @@ class StoreBook:
                 entry_trac = Entry(add_ent_frame, width=40, textvariable=add_tractor_name, font=('arial', 15, 'bold'),
                                    cursor='xterm', state='normal')
                 entry_trac.grid(row=2, column=1)
-                entry_trac.bind('<KeyRelease>', suggest_trac)
+
+                # code for auto complete
+                all_tractors = func_provider.fetch(
+                    'stock', ['DISTINCT(tractor)'])
+
+                entry_trac.bind('<Tab>', lambda event, total_values=all_tractors,
+                                textvar=add_tractor_name: auto_complete(total_values, textvar))
 
                 """____________________________brand_name____________________________________"""
                 lbl_name = Label(add_ent_frame, text='Brand Name:*', font=('arial', 15, 'bold'),
@@ -1549,7 +1469,12 @@ class StoreBook:
                 entry_name = Entry(add_ent_frame, width=40, textvariable=add_brand_name, font=('arial', 15, 'bold'),
                                    cursor='xterm', state='normal')
                 entry_name.grid(row=3, column=1)
-                entry_name.bind('<KeyRelease>', suggest_brand)
+
+                # code for auto complete
+                all_brands = func_provider.fetch('brands', ['name'])
+
+                entry_name.bind('<Tab>', lambda event, total_values=all_brands,
+                                textvar=add_brand_name: auto_complete(total_values, textvar))
 
                 menu_button = ttk.Menubutton(
                     add_ent_frame, text='Brand Names:', cursor='mouse')
@@ -1633,9 +1558,7 @@ class StoreBook:
 
                 add_btn = Button(add_but_frame, text="Reset", bd=3, pady=1, padx=1,
                                  relief=RIDGE, overrelief=SUNKEN, cursor='hand1', font=('arial', 20, 'bold', 'italic'),
-                                 bg=button_color, command=lambda: reset(add_product_name, add_tractor_name, add_brand_name,
-                                                                         add_part_no, add_mrp, add_code, add_description, add_quantity, add_warning_qty, add_date,
-                                                                         add_img, add_box_no))
+                                 bg=button_color, command=lambda: reset(add_product_name, add_tractor_name, add_brand_name, add_part_no, add_mrp, add_code, add_description, add_quantity, add_warning_qty, add_date, add_img, add_box_no))
                 add_btn.grid(row=0, column=1)
 
                 add_btn = Button(add_but_frame, text=" Exit  ", bd=3, pady=1, padx=1,
@@ -1678,7 +1601,7 @@ class StoreBook:
         side_frame.grid(row=0, column=0)
 
         """__________________top frame_____________________"""
-        self.lbl1 = Label(top, font=('helvetica', 31, 'bold'), text="               Inventory Record Mf!               ",
+        self.lbl1 = Label(top, font=('helvetica', 31, 'bold'), text="\t  Inventory Record\t  ",
                           justify=CENTER, cursor='sailboat')
         self.lbl1.grid(row=0, column=1)
 

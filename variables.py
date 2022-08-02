@@ -23,7 +23,22 @@ ICON_PATH = STATIC_DIR + f'\\{icon_folder}'
 DB_FILE_DIR = STATIC_DIR + f'\\{db_folder}'
 
 # database
-db_fields = 12
+database_fields = {
+    'Product Name': ('product_name', 220), # (field in database, length we want to set of its column in treeview)
+    'Tractor': ('tractor', 80), 
+    'Brand Name': ('brand_name', 120), 
+    'Part No.': ('part_number', 180),
+    'Code': ('code', 80),
+    'MRP': ('mrp', 80),
+    'Box': ('box_no', 60),
+    'Description': ('description', 240),
+    'Quantity': ('quantity', 60),
+    'Warning Qty': ('warning_qty', 60),
+    'Date': ('date', 80),
+    'Image': ('image', 100)
+}
+
+db_fields = len(database_fields)
 
 #dependencies
 dependencies = ["tkcalendar", "pandas", "numpy", "mysql-connector-python", "xlsxwriter"]

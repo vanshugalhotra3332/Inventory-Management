@@ -1,16 +1,28 @@
-from cgi import parse_multipart
+from dataclasses import fields
 from tkinter import *
 from tkinter import ttk
 import itertools
 from db_connection import cursor
-from variables import db_fields
+from variables import db_fields, database_fields
 from gui_funcs import GuiFuncs
+from db_functions import DatabaseFunctions
 
 funcProvider = GuiFuncs()
+dbFuncProvider = DatabaseFunctions()
+
 
 class CustomTreeview(ttk.Treeview):
+    columns = []
+    fields = []  # fields in database
+
     def __init__(self, master, columns, show="headings", height=30, row=2, column=0):
         super().__init__(master, columns=columns, show=show, height=height)
+
+        # setting the attributes
+        self.columns = columns
+
+        # setting the corresponding database fields
+        self.fields = [database_fields[field][0] for field in self.columns]
 
         # setting up the scrollbar
         self.scroll_bar = ttk.Scrollbar(
@@ -23,43 +35,44 @@ class CustomTreeview(ttk.Treeview):
             self.heading(cols, text=cols.title())
 
         # setting up column widths
-        self.column(columns[0], width=80)
-        self.column(columns[1], width=220)
-        self.column(columns[2], width=80)
-        self.column(columns[3], width=120)
-        self.column(columns[4], width=180)
-        self.column(columns[5], width=80)
-        self.column(columns[6], width=80)
-        self.column(columns[7], width=60)
-        self.column(columns[8], width=240)
-        self.column(columns[9], width=60)
-        self.column(columns[10], width=60)
+        for field in columns:
+            self.column(field, width=database_fields[field][1])
 
         # placing the treeview on grid
         self.grid(row=row, column=column)
 
-    def search(self, sort_by, to_search, table, special_data=[], special_search=False):
+    def search(self, to_search, table, sort_by=None, special_data=[], special_search=False):
         parameter = '%' + f'{to_search}' + '%'
         if to_search != 0:
             try:
                 self.delete(*self.get_children())
+                if not sort_by:  # if user did'nt provided sort by field then we will use product_name, desc, part_Number by default
+                    conditions = {
+                        'product_name': ['LIKE', f"'{parameter}'", 'OR'],
+                        'part_number': ['LIKE', f"'{parameter}'", 'OR'],
+                        'description': ['LIKE', f"'{parameter}'"]
+                    }
+
+                else:
+                    conditions = {
+                        sort_by: ['LIKE', f"'{parameter}'"]
+                    }
 
                 if not special_search:
-                    command_ = f"SELECT date, product_name, tractor,brand_name,part_number,code,mrp,box_no,description,quantity,warning_qty FROM {table} WHERE {sort_by} LIKE '{parameter}'"
-                    cursor.execute(command_)
-                    fetch = cursor.fetchall()
-                    fetch_list = list(itertools.chain(*fetch))
+
+                    fetch_list = dbFuncProvider.fetch(
+                        table=table, field_list=self.fields, conditions=conditions)
+
                     # db_fields - 1 cuz we dont have image info
                     for i in range(0, len(fetch_list), db_fields-1):
-                        fetch_list[i] = funcProvider.system_to_english_date_format(fetch_list[i]) # converting the system dates to english format
+                        fetch_list[i] = funcProvider.system_to_english_date_format(
+                            fetch_list[i])  # converting the system dates to english format
                         self.insert(
                             '', 'end', values=fetch_list[i: i+db_fields-1])
 
                 else:
-                    command = f"SELECT product_name FROM {table} WHERE {sort_by} LIKE '{parameter}'"
-                    cursor.execute(command)
-                    fetch = cursor.fetchall()
-                    product_names_list = list(itertools.chain(*fetch))
+                    product_names_list = dbFuncProvider.fetch(
+                        table=table, field_list=['product_name'], conditions=conditions)
 
                     length = int(len(special_data) / 2)
                     # can use after also,

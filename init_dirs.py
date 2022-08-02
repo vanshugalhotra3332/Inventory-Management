@@ -22,4 +22,3 @@ def init_dirs():
             for lib in dependencies:
                 lib_file.write(lib + "\n")
             
-init_dirs()

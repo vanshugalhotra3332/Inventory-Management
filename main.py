@@ -114,7 +114,8 @@ class StoreBook:
         so_search = StringVar()
 
         treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
-                            'box_no', 'Description', 'Quantity', 'Warning Qty']
+                            'Box', 'Description', 'Quantity', 'Warning Qty']
+
         # __________________________________styling___________________________________________________
         style.configure("Treeview",
                         background='mint cream',
@@ -184,8 +185,7 @@ class StoreBook:
 
         def delete_product_finally(_event=None):
             del_name = del_product_name.get()
-            all_products = func_provider.get_list_from_database(
-                'stock', 'product_name')
+            all_products = func_provider.fetch('stock', ['product_name'])
 
             for i in range(len(all_products)):  # converting to lower case
                 all_products[i] = all_products[i].lower()
@@ -195,11 +195,12 @@ class StoreBook:
                     'Permission Required!', f"Confirm to delete product'{del_name}'")
                 if permission is True:
                     # sending data to recently deleted table
-                    fetch_command = f"SELECT * from stock where product_name='{del_name}'"
-                    cursor.execute(fetch_command)
-                    data_tup = cursor.fetchall()
-
-                    del_data_ = list(itertools.chain(*data_tup))
+                    conditions = {
+                        'product_name': ['=', f"'{del_name}'"]
+                    }
+                    # this command will be like, SELECT * from stock WHERE product_name = 'del_name'
+                    del_data_ = func_provider.fetch(
+                        table='stock', conditions=conditions)
 
                     del_data = del_data_.copy()
 
@@ -617,8 +618,8 @@ class StoreBook:
             mrp_column = mrp_ind.get()
             file_path = pdf_ind.get()
 
-            db_part_numbers = func_provider.get_list_from_database(
-                table='stock', field='part_number')
+            db_part_numbers = func_provider.fetch(
+                table='stock', field_list=['part_number'])
             for i in range(len(db_part_numbers)):
                 db_part_numbers[i] = db_part_numbers[i].lower()
 
@@ -707,17 +708,15 @@ class StoreBook:
             add_btn.grid(row=5, column=1)
 
         def total_stock(_event=None):
-            stock_list = func_provider.get_list_from_database(
-                table='stock', field='mrp*quantity')
+            stock_list = func_provider.fetch(
+                table='stock', field_list=['mrp*quantity'])
             sum_stock = sum(stock_list)
             tkinter.messagebox.showinfo(
                 'Total Stock!', f'Total Stock is Rs. {sum_stock}')
 
         def export_xlsx(save_dir):
-            command_ = "SELECT * from stock"
-            cursor.execute(command_)
-            record_tuple = cursor.fetchall()
-            record_list = list(itertools.chain(*record_tuple))
+            # by default it fetches all items
+            record_list = func_provider.fetch('stock')
 
             # slicing all product names from list
             slice_product_name = slice(0, len(record_list), 12)
@@ -852,10 +851,8 @@ class StoreBook:
 
         def check_warnings(_event=None):
             treeview.delete(*treeview.get_children())
-            warning_command = "SELECT product_name, brand_name, quantity, warning_qty from stock"
-            cursor.execute(warning_command)
-            output_in_tuple = cursor.fetchall()
-            output_list = list(itertools.chain(*output_in_tuple))
+            output_list = func_provider.fetch(
+                'stock', field_list=['product_name', 'brand_name', 'quantity', 'warning_qty'])
 
             list_needed = []
 
@@ -868,17 +865,18 @@ class StoreBook:
             for sep in list_needed:
                 if sep[2:3] < sep[3:]:
                     identifier = sep[0]  # name is primary key
-                    data_command = f"SELECT product_name, brand_name, quantity from stock where product_name = '{identifier}'"
-                    cursor.execute(data_command)
-                    data_tuple = cursor.fetchall()
-                    data_list = list(itertools.chain(*data_tuple))
+
+                    conditions = {
+                        'product_name': ['=', f"'{identifier}'"]
+                    }
+                    data_list = func_provider.fetch(table='stock', field_list=[
+                                                    'product_name', 'brand_name', 'quantity'], conditions=conditions)
+
                     treeview.insert('', 'end', values=data_list)
 
         def save_warning_sheet():
-            warning_command = "SELECT product_name, brand_name, quantity, warning_qty from stock"
-            cursor.execute(warning_command)
-            output_in_tuple = cursor.fetchall()
-            output_list = list(itertools.chain(*output_in_tuple))
+            output_list = func_provider.fetch(
+                'stock', field_list=['product_name', 'brand_name', 'quantity', 'warning_qty'])
 
             list_needed = []
 
@@ -891,10 +889,13 @@ class StoreBook:
             for sep in list_needed:
                 if sep[2:3] < sep[3:]:
                     identifier = sep[0]  # name is primary key
-                    data_command = f"SELECT product_name, brand_name, quantity from stock where product_name = '{identifier}'"
-                    cursor.execute(data_command)
-                    data_tuple = cursor.fetchall()
-                    data_list = list(itertools.chain(*data_tuple))
+       
+                    conditions = {
+                        'product_name': ['=', f"'{identifier}'"]
+                    }
+                    data_list = func_provider.fetch(table='stock', field_list=[
+                                                    'product_name', 'brand_name', 'quantity'], conditions=conditions)
+
                     # for warning sheet
                     data_list_.append(data_list[0])
                     data_list_.append(data_list[1])
@@ -1022,12 +1023,13 @@ class StoreBook:
             elif img_up == '':
                 up_img.set(None)
 
-            else:
-                get_com = f'SELECT * FROM stock WHERE product_name = "{product_name_up}"'
-                cursor.execute(get_com)
-                old_tup = cursor.fetchall()
+            else:                
+                conditions = {
+                    'product_name': ['=', f"'{product_name_up}'"]
+                }
 
-                old_data = list(itertools.chain(*old_tup))
+                old_data = func_provider.fetch(table='stock',conditions=conditions)
+                
                 old_data[10] = str(current_date)
                 old_name = old_data[0]
                 old_tractor = old_data[1]
@@ -1237,10 +1239,10 @@ class StoreBook:
             inv_screen.title('Inventory')
             inv_screen.geometry('1500x900')
 
-            def search_(sort_by):
+            def search_(sort_by=None):
                 searched = inv_search.get()
                 records_treeview.search(
-                    sort_by=sort_by, to_search=searched, table="stock")
+                    to_search=searched, table="stock", sort_by=sort_by)
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
                 inv_screen, text='Sort By', cursor='mouse')
@@ -1250,13 +1252,9 @@ class StoreBook:
             menu_.add_command(
                 label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
             menu_.add_command(
-                label='Part Number', command=lambda sort_by="part_number": search_(sort_by))
-            menu_.add_command(
                 label='MRP', command=lambda sort_by="mrp": search_(sort_by))
             menu_.add_command(label='Box Number',
                               command=lambda sort_by="box_no": search_(sort_by))
-            menu_.add_command(
-                label='Description', command=lambda sort_by="description": search_(sort_by))
             menu_.add_command(
                 label='date', command=lambda sort_by="date": search_(sort_by))
             menu_.add_command(
@@ -1278,13 +1276,14 @@ class StoreBook:
             sb_entry = Entry(inv_screen, textvariable=inv_search,
                              width=110, font=('arial', 15))
             sb_entry.grid(row=2, column=0)
+            sb_entry.focus_set()  # setting focus on the entry widget
 
             sb_entry.bind('<KeyRelease>', lambda event,
-                          sort_by='product_name': search_(sort_by))
+                          sort_by=None: search_(sort_by))
 
             search_btn = Button(inv_screen, text="Search", bd=1, pady=1, padx=1,
                                 relief=RIDGE, overrelief=SUNKEN, cursor='mouse', font=('arial', 8, 'italic'),
-                                bg='snow', command=lambda sort_by='product_name': search_(sort_by))
+                                bg='snow', command=lambda sort_by=None: search_(sort_by))
             search_btn.grid(row=2, column=1)
 
             # treeview
@@ -1376,8 +1375,7 @@ class StoreBook:
 
             else:
                 try:
-                    all_brands = func_provider.get_list_from_database(
-                        'brands', 'name')
+                    all_brands = func_provider.fetch('brands', ['name'])
                     for i in range(len(all_brands)):
                         all_brands[i] = all_brands[i].lower()
 
@@ -1435,7 +1433,7 @@ class StoreBook:
 
         def add_inventory(_event=None):
             # checking if there is atleast 1 brand registered
-            brand_list = func_provider.get_list_from_database('brands', 'name')
+            brand_list = func_provider.fetch('brands', ['name'])
             if len(brand_list) != 0:
                 def date_picker():
                     def select_date():
@@ -1465,8 +1463,7 @@ class StoreBook:
 
                 def suggest_brand(_event=None):
                     typed = add_brand_name.get()
-                    all_brands = func_provider.get_list_from_database(
-                        'brands', 'name')
+                    all_brands = func_provider.fetch('brands', ['name'])
                     for i in range(len(all_brands)):
                         all_brands[i] = all_brands[i].lower()
 
@@ -1482,8 +1479,8 @@ class StoreBook:
 
                 def suggest_trac(_event=None):
                     typed = add_tractor_name.get()
-                    all_brands = func_provider.get_list_from_database(
-                        'stock', 'DISTINCT(tractor)')
+                    all_brands = func_provider.fetch(
+                        'stock', ['DISTINCT(tractor)'])
                     for i in range(len(all_brands)):
                         all_brands[i] = all_brands[i].lower()
 
@@ -1561,8 +1558,7 @@ class StoreBook:
                 menu_ = Menu(menu_button, tearoff=0)
                 menu_button['menu'] = menu_
 
-                brands_data = func_provider.get_list_from_database(
-                    'brands', 'name')
+                brands_data = func_provider.fetch('brands', ['name'])
                 for brands in brands_data:
                     menu_.add_command(
                         label=f'{brands}', command=lambda br_name=brands: store_br(br_name))

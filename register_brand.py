@@ -18,7 +18,7 @@ class RegisterBrand:
             tkinter.messagebox.showerror('Error!', f'Brand Name "{brand_name}" Already Exists!')
 
     def delete_brand(self, brand_name):
-        list_of_all_names = function_provider.get_list_from_database('brands', 'name')
+        list_of_all_names = function_provider.fetch('brands', ['name'])
 
         if brand_name in list_of_all_names:
             delete_command = f'DELETE FROM brands WHERE name={brand_name}'
@@ -31,7 +31,7 @@ class RegisterBrand:
         # not working
 
     def update_brand(self, old_brand_name, new_brand_name):
-        all_brands = function_provider.get_list_from_database('brands', field='name')
+        all_brands = function_provider.fetch('brands', field_list=['name'])
         for i in  range(len(all_brands)):
             all_brands[i] = all_brands[i].lower()
 

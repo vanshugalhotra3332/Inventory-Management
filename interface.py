@@ -61,14 +61,14 @@ class CustomTreeview(ttk.Treeview):
                 self.delete(*self.get_children())
                 if not sort_by:  # if user did'nt provided sort by field then we will use product_name, desc, part_Number by default
                     conditions = {
-                        product_name_field: ['LIKE', f"'{parameter}'", 'OR'],
-                        part_number_field: ['LIKE', f"'{parameter}'", 'OR'],
-                        description_field: ['LIKE', f"'{parameter}'"]
+                        product_name_field: ['LIKE', parameter, 'OR'],
+                        part_number_field: ['LIKE', parameter, 'OR'],
+                        description_field: ['LIKE', parameter]
                     }
 
                 else:
                     conditions = {
-                        sort_by: ['LIKE', f"'{parameter}'"]
+                        sort_by: ['LIKE', parameter]
                     }
 
                 if not special_search:

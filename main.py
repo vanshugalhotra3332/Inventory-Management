@@ -1,3 +1,6 @@
+from dataclasses import field
+from math import prod
+from shelve import DbfilenameShelf
 import subprocess
 import datetime
 import os
@@ -13,7 +16,7 @@ from variables import MYSQL_BIN, file_name, cur_wd, DB_FILE_DIR, database, file_
 from initialize import init_dirs
 from interface import CustomTreeview
 
-init_dirs()  # initializing directories in use
+# init_dirs()  # initializing directories in use
 
 try:
     from tkcalendar import Calendar
@@ -111,6 +114,9 @@ class StoreBook:
         treeview_columns = ['Date', 'Product Name', 'Tractor', 'Brand Name', 'Part No.', 'Code', 'MRP',
                             'Box', 'Description', 'Quantity', 'Warning Qty']
 
+        update_fields = [tractor_field, code_field, mrp_field, box_no_field,
+                         description_field, quantity_field, warning_qty_field, date_field, image_field]
+
         # __________________________________styling___________________________________________________
         style.configure("Treeview",
                         background='mint cream',
@@ -178,8 +184,7 @@ class StoreBook:
             del_name = del_product_name.get()
             all_products = dbFuncProvider.fetch('stock', [product_name_field])
 
-            for i in range(len(all_products)):  # converting to lower case
-                all_products[i] = all_products[i].lower()
+            all_products = [products.lower() for products in all_products]
 
             if del_name.lower() in all_products:
                 permission = tkinter.messagebox.askyesno(
@@ -187,7 +192,7 @@ class StoreBook:
                 if permission is True:
                     # sending data to recently deleted table
                     conditions = {
-                        product_name_field: ['=', f"'{del_name}'"]
+                        product_name_field: ['=', del_name]
                     }
                     # this command will be like, SELECT * from stock WHERE product_name = 'del_name'
                     del_data_ = dbFuncProvider.fetch(
@@ -198,7 +203,6 @@ class StoreBook:
                     del_data[10] = str(current_date)
 
                     rd_tractor = del_data[1]
-                    rd_part = del_data[3]
                     rd_code = del_data[4]
                     rd_mrp = del_data[5]
                     rd_box = del_data[6]
@@ -207,19 +211,26 @@ class StoreBook:
                     rd_war = del_data[9]
                     rd_img = del_data[11]
                     if rd_qty == 0:  # if quantity for product is 0 then and only then it can be deleted
-                        
-                        dbFuncProvider.delete(table='stock', conditions={product_name_field: ['=', f"'{del_name}'"]})
-                        try:                        
-                            dbFuncProvider.insert(table="recently_deleted", data = del_data)
+
+                        dbFuncProvider.delete(
+                            table='stock', conditions=conditions)
+                        dbFuncProvider.delete(
+                            table='recently_added', conditions=conditions)
+                        dbFuncProvider.delete(
+                            table='stock_in', conditions=conditions)
+                        try:
+                            dbFuncProvider.insert(
+                                table="recently_deleted", data=del_data)
 
                         except mysql.errors.IntegrityError:  # if we have deleted this product already, then we will just update the data
-                            upd_command = f"UPDATE recently_deleted SET tractor='{rd_tractor}',part_number='{rd_part}',"\
-                                f"code='{rd_code}',mrp={rd_mrp},box_no='{rd_box}',description='{rd_desc}',quantity={rd_qty},"\
-                                f"warning_qty={rd_war},date='{str(current_date)}',image='{rd_img}'"\
-                                f"WHERE {product_name_field}='{del_name}'"
-                            cursor.execute(upd_command)
-                            connection.commit()
-                            
+                            values = [rd_tractor, rd_code, rd_mrp, rd_box,
+                                      rd_desc, rd_qty, rd_war, str(current_date), rd_img]
+
+                            conditions = {product_name_field: ['=', del_name]}
+
+                            dbFuncProvider.update(
+                                table="recently_deleted", fields=update_fields, values=values, conditions=conditions)
+
                             tkinter.messagebox.showinfo(
                                 'Success!', f"Product '{del_name}' delete successfully!")
                             delete_window.destroy()
@@ -624,10 +635,10 @@ class StoreBook:
                     print(part_mrp_dict)
 
                     for part_no in part_mrp_dict:
-                        update_command = f"UPDATE stock SET mrp={part_mrp_dict[part_no]} where part_number='{part_no}'"
-                        cursor.execute(update_command)
+                        dbFuncProvider.update(table='stock', fields=[mrp_field], values=[part_mrp_dict[part_no]], conditions={
+                            part_number_field: ['=', part_no]
+                        })
 
-                    connection.commit()
                     guiFuncProvider.focus_on(mrp_window, state=False)
                     tkinter.messagebox.showinfo(
                         'Success!', f'Total {len(part_mrp_dict)} Records Updated!')
@@ -679,10 +690,9 @@ class StoreBook:
 
         def total_stock(_event=None):
             stock_list = dbFuncProvider.fetch(
-                table='stock', field_list=['mrp*quantity'])
-            sum_stock = sum(stock_list)
+                table='stock', field_list=[f'SUM({mrp_field}*{quantity_field})'])
             tkinter.messagebox.showinfo(
-                'Total Stock!', f'Total Stock is Rs. {sum_stock}')
+                'Total Stock!', f'Total Stock is Rs. {stock_list[0]}')
 
         def export_xlsx(save_dir):
             # by default it fetches all items
@@ -978,7 +988,7 @@ class StoreBook:
 
             else:
                 conditions = {
-                    product_name_field: ['=', f"'{product_name_up}'"]
+                    product_name_field: ['=', product_name_up]
                 }
 
                 old_data = dbFuncProvider.fetch(
@@ -987,7 +997,6 @@ class StoreBook:
                 old_data[10] = str(current_date)
                 old_name = old_data[0]
                 old_tractor = old_data[1]
-                old_part = old_data[3]
                 old_code = old_data[4]
                 old_mrp = old_data[5]
                 old_box = old_data[6]
@@ -1001,31 +1010,35 @@ class StoreBook:
                     dbFuncProvider.insert(table="before_update", data=old_data)
 
                 except mysql.errors.IntegrityError:
-                    up_command = f"UPDATE before_update SET {tractor_field}='{old_tractor}',{part_number_field}='{old_part}',"\
-                        f"{code_field}='{old_code}',{mrp_field}={old_mrp},{box_no_field}='{old_box}',{description_field}='{old_desc}',{quantity_field}={old_qty},"\
-                        f"{warning_qty_field}={old_war},{date_field}='{str(current_date)}',{image_field}='{old_img}'"\
-                        f"WHERE {product_name_field}='{old_name}'"
-                    cursor.execute(up_command)
-                    connection.commit()
+                    before_values = [old_tractor, old_code, old_mrp, old_box,
+                                     old_desc, old_qty, old_war, str(current_date), old_img]
+
+                    before_conditions = {product_name_field: ['=', old_name]}
+
+                    dbFuncProvider.update(
+                        table="before_update", fields=update_fields, values=before_values, conditions=before_conditions)
 
                 # _________________________________updating the data
-                update_command = f'UPDATE stock SET {tractor_field}="{tractor_up}", {code_field}="{code_up}", {mrp_field}={mrp_up}, {box_no_field}="{box_no_up}",'\
-                                 f'{description_field}="{description_up}", {quantity_field}={quantity_up}, {warning_qty_field}={warning_qty_up}, image="{img_up}"'\
-                                 f"where {product_name_field}='{product_name_up}'"
-                cursor.execute(update_command)
-                connection.commit()
+
+                fields = [tractor_field, code_field, mrp_field, box_no_field,
+                          description_field, quantity_field, warning_qty_field, image_field]
+
+                up_values = [tractor_up, code_up, mrp_up, box_no_up,
+                             description_up, quantity_up, warning_qty_up, img_up]
+
+                values = [tractor_up, code_up, mrp_up, box_no_up, description_up,  # including
+                          quantity_up, warning_qty_up, str(current_date), img_up]
+
+                dbFuncProvider.update(
+                    table="stock", fields=fields, values=up_values, conditions=conditions)
 
                 # ___________________________adding data to after_update table
                 try:
                     dbFuncProvider.insert("after_update", update_data)
 
                 except mysql.errors.IntegrityError:
-                    up_command = f"UPDATE after_update SET {tractor_field}='{tractor_up}',{part_number_field}='{part_no_up}',"\
-                        f"{code_field}='{code_up}',{mrp_field}={mrp_up},{box_no_field}='{box_no_up}',{description_field}='{description_up}',quantity={quantity_up},"\
-                        f"{warning_qty_field}={warning_qty_up},{date_field}='{str(current_date)}',{image_field}='{img_up}'"\
-                        f"WHERE {product_name_field}='{product_name_up}'"
-                    cursor.execute(up_command)
-                    connection.commit()
+                    dbFuncProvider.update(
+                        table="after_update", fields=update_fields, values=values, conditions=conditions)
 
                 # adding data to stock_in and stock_out tables;
                 table = ''
@@ -1039,7 +1052,7 @@ class StoreBook:
                 elif old_qty > int(quantity_up):
                     table = 'stock_out'
                     up_data[8] = old_qty - int(quantity_up)
-                    upd_qty = int(quantity_up) - old_qty
+                    upd_qty = old_qty - int(quantity_up)
 
                 else:
                     table = 'garbage'
@@ -1048,12 +1061,10 @@ class StoreBook:
                     dbFuncProvider.insert(table=table, data=up_data)
 
                 except mysql.errors.IntegrityError:
-                    up_command = f"UPDATE {table} SET {tractor_field}='{tractor_up}',{part_number_field}='{part_no_up}',"\
-                        f"{code_field}='{code_up}',{mrp_field}={mrp_up},{box_no_field}='{box_no_up}',{description_field}='{description_up}',{quantity_field}={upd_qty},"\
-                        f"{warning_qty_field}={warning_qty_up},{date_field}='{str(current_date)}',{image_field}='{img_up}'"\
-                        f"WHERE {product_name_field}='{product_name_up}'"
-                    cursor.execute(up_command)
-                    connection.commit()
+                    values = [tractor_up, code_up, mrp_up, box_no_up, description_up,
+                              upd_qty, warning_qty_up, str(current_date), img_up]
+                    dbFuncProvider.update(
+                        table=table, fields=update_fields, values=values, conditions=conditions)
 
                 guiFuncProvider.focus_on(up_screen, state=False)
                 tkinter.messagebox.showinfo(
@@ -1309,9 +1320,6 @@ class StoreBook:
             elif warning_qty == '':
                 add_warning_qty.set(0)
 
-            # elif part_number == '':            # not working unique and may be null part number
-            #     add_part_no.set('')
-
             elif code == '':
                 add_code.set(None)
 
@@ -1324,16 +1332,15 @@ class StoreBook:
             else:
                 try:
                     all_brands = dbFuncProvider.fetch('brands', ['name'])
-
+                    all_brands = [brand.lower() for brand in all_brands]
                     if brand_name.lower() in all_brands:
-                            
+
                         values = (product_name, tractor_name, brand_name, part_number, code, mrp, box_no,
                                   description, quantity, warning_qty, date_, add_image)
-                        
+
                         dbFuncProvider.insert('stock', values)
                         dbFuncProvider.insert('recently_added', values)
                         dbFuncProvider.insert('stock_in', values)
-                        
                         guiFuncProvider.focus_on(add_screen, state=False)
                         tkinter.messagebox.showinfo(
                             'Success', f'Product "{product_name}" added Successfully!')

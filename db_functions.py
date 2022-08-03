@@ -1,3 +1,4 @@
+from dataclasses import field
 import os
 import itertools
 from variables import password, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
@@ -49,15 +50,15 @@ class DatabaseFunctions:
         if len(conditions) == 1:  # if we have only one condition
             field = list(conditions.keys())[0]
             op_val = conditions[field]
-            command += f" {field} {op_val[0]} {op_val[1]}"
+            command += f" {field} {op_val[0]} '{op_val[1]}'"
         else:  # for multiple conditions
             i = 0
             for field, op_val in conditions.items():  # appending each condition
                 i += 1
                 if i == len(conditions):  # to avoid appending this for last condition
-                    command += f" {field} {op_val[0]} {op_val[1]}" # last one don't have OR | AND, it has only 2 values
+                    command += f" {field} {op_val[0]} '{op_val[1]}'" # last one don't have OR | AND, it has only 2 values
                 else:
-                    command += f" {field} {op_val[0]} {op_val[1]} {op_val[2]}"
+                    command += f" {field} {op_val[0]} '{op_val[1]}' {op_val[2]}"
         return command
 
     def fetch(self, table, field_list=["*"], conditions={}):
@@ -78,6 +79,7 @@ class DatabaseFunctions:
             init_tables()
             
     def insert(self, table, data):
+        """Insert the data to the mysql table"""
         command = f"INSERT INTO {table} VALUES ("
         for _ in range(len(data) - 1):
             command += "%s, "
@@ -90,8 +92,22 @@ class DatabaseFunctions:
             init_tables()
             
     def delete(self, table, conditions):
+        """Delete the data from table based on given conditions"""
         command = f"DELETE FROM {table}"
         command = self.set_conditions(command, conditions)
+        cursor.execute(command)
+        connection.commit()
+        
+    def update(self, table, fields, values, conditions):
+        """Update the fields in table with new values based on conditions"""
+        command = f"UPDATE {table} SET "
+        
+        for i in range(len(fields)):
+            command += f" {fields[i]} = '{values[i]}'"
+            if i!= len(fields)-1:
+                command += ", "
+        command = self.set_conditions(command, conditions)
+        
         cursor.execute(command)
         connection.commit()
 

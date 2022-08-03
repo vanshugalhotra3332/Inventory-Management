@@ -2,6 +2,8 @@ import os
 import itertools
 from variables import db_folder, icon_folder, static_folder, STATIC_DIR, dependencies, cur_wd, host, user, password, database_fields
 import mysql.connector as mysql
+from tkinter.messagebox import showinfo
+from sys import exit
 
 def init_dirs():
     if static_folder not in os.listdir():
@@ -74,6 +76,8 @@ def init_tables():
         table="garbage", fields_dict=database_fields, foreign_key=foreign_key_details)
     
     print("Tables created successfully!")
+    showinfo('Success!', 'Table Created Successfully!\n Kindly Rerun the code')
+    exit(0)
 
 
 

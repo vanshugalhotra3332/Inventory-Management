@@ -2,7 +2,6 @@ import mysql.connector as mysql
 from variables import password, database, user, host
 from initialize import init_db, init_tables
 
-
 try:
     connection = mysql.connect(
         user=user,
@@ -25,8 +24,3 @@ except mysql.errors.ProgrammingError:
     
     cursor = connection.cursor()
     init_tables()
-    
-
-
-
-

@@ -55,4 +55,4 @@ database_fields = {
 db_fields = len(database_fields)
 
 #dependencies
-dependencies = ["tkcalendar", "pandas", "numpy", "mysql-connector-python", "xlsxwriter"]
+dependencies = ["tkcalendar", "pandas", "mysql-connector-python", "xlsxwriter"]

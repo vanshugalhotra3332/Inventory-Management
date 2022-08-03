@@ -18,14 +18,12 @@ init_dirs()  # initializing directories in use
 try:
     from tkcalendar import Calendar
     import mysql.connector as mysql
-    import numpy as np
     import pandas
 
 except ModuleNotFoundError:  # installing dependencies
     subprocess.call(['pip', 'install', '-r', f'{cur_wd}//requirements.txt'])
     from tkcalendar import Calendar
     import mysql.connector as mysql
-    import numpy as np
     import pandas
 
 
@@ -41,8 +39,8 @@ class StoreBook:
 
         # Objects
         Registrar = RegisterBrand()
-        gui_func_provider = GuiFuncs()
-        func_provider = DatabaseFunctions()
+        guiFuncProvider = GuiFuncs()
+        dbFuncProvider = DatabaseFunctions()
 
         # formatting
         button_color = 'gold2'
@@ -63,7 +61,7 @@ class StoreBook:
 
         cur_date_list = [f'{cur_year}-{cur_month}-{cur_day}']
         print(cur_date_list)
-        today_date = gui_func_provider.convert_all_dates_to_english(
+        today_date = guiFuncProvider.convert_all_dates_to_english(
             cur_date_list)
 
         # string vars
@@ -178,7 +176,7 @@ class StoreBook:
 
         def delete_product_finally(_event=None):
             del_name = del_product_name.get()
-            all_products = func_provider.fetch('stock', [product_name_field])
+            all_products = dbFuncProvider.fetch('stock', [product_name_field])
 
             for i in range(len(all_products)):  # converting to lower case
                 all_products[i] = all_products[i].lower()
@@ -192,7 +190,7 @@ class StoreBook:
                         product_name_field: ['=', f"'{del_name}'"]
                     }
                     # this command will be like, SELECT * from stock WHERE product_name = 'del_name'
-                    del_data_ = func_provider.fetch(
+                    del_data_ = dbFuncProvider.fetch(
                         table='stock', conditions=conditions)
 
                     del_data = del_data_.copy()
@@ -236,7 +234,7 @@ class StoreBook:
             else:
                 tkinter.messagebox.showerror(
                     'Error!', f"'{del_name}' product name doesn't exists")
-                gui_func_provider.focus_on(delete_window)
+                guiFuncProvider.focus_on(delete_window)
 
         def recently_added():
             reca_window = Toplevel(root)
@@ -287,7 +285,7 @@ class StoreBook:
 
             # adding data to treeview fetching from table
             global total_data
-            total_data = func_provider.custom_fetching(table='recently_added')
+            total_data = dbFuncProvider.custom_fetching(table='recently_added')
             for treeview_data in total_data:
                 reca_treeview.insert('', 'end', values=treeview_data)
 
@@ -339,7 +337,7 @@ class StoreBook:
 
             # adding data to treeview fetching from table
             global total_data
-            total_data = func_provider.custom_fetching(
+            total_data = dbFuncProvider.custom_fetching(
                 table='recently_deleted')
             for treeview_data in total_data:
                 rec_treeview.insert('', 'end', values=treeview_data)
@@ -405,8 +403,8 @@ class StoreBook:
             tran_treeview.tag_configure('evenrow', background=after_color)
 
             # getting data from database to add in treeview
-            before_data = func_provider.custom_fetching(table='before_update')
-            after_data = func_provider.custom_fetching(table='after_update')
+            before_data = dbFuncProvider.custom_fetching(table='before_update')
+            after_data = dbFuncProvider.custom_fetching(table='after_update')
             global total
             total = before_data + after_data
 
@@ -464,7 +462,7 @@ class StoreBook:
 
             # adding data to treeview fetching from table
             global total_data
-            total_data = func_provider.custom_fetching(table='stock_in')
+            total_data = dbFuncProvider.custom_fetching(table='stock_in')
             for treeview_data in total_data:
                 si_treeview.insert('', 'end', values=treeview_data)
 
@@ -516,7 +514,7 @@ class StoreBook:
 
             # adding data to treeview fetching from table
             global total_data
-            total_data = func_provider.custom_fetching(table='stock_out')
+            total_data = dbFuncProvider.custom_fetching(table='stock_out')
             for treeview_data in total_data:
                 so_treeview.insert('', 'end', values=treeview_data)
 
@@ -580,9 +578,9 @@ class StoreBook:
             lbl_name = Label(brand_window_, text="Update Brand Name", font=(
                 'arial', 30, 'bold'), padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
-            gui_func_provider.custom_entry_labels(
+            guiFuncProvider.custom_entry_labels(
                 brand_window_, text=' Old Brand Name:', r=1, var=old_brand_name)
-            gui_func_provider.custom_entry_labels(
+            guiFuncProvider.custom_entry_labels(
                 brand_window_, text=' New Brand Name:', r=2, var=new_brand_name)
 
             add_btn = Button(brand_window_, text="Update", bd=3, pady=1, padx=1,
@@ -591,12 +589,12 @@ class StoreBook:
             add_btn.grid(row=3, column=1)
 
         def update_mrp_finally():
-            gui_func_provider.focus_on(mrp_window, state=False)
+            guiFuncProvider.focus_on(mrp_window, state=False)
             part_column = part_ind.get()
             mrp_column = mrp_ind.get()
             file_path = pdf_ind.get()
 
-            db_part_numbers = func_provider.fetch(
+            db_part_numbers = dbFuncProvider.fetch(
                 table='stock', field_list=['part_number'])
 
             if file_path != '':
@@ -633,7 +631,7 @@ class StoreBook:
                         cursor.execute(update_command)
 
                     connection.commit()
-                    gui_func_provider.focus_on(mrp_window, state=False)
+                    guiFuncProvider.focus_on(mrp_window, state=False)
                     tkinter.messagebox.showinfo(
                         'Success!', f'Total {len(part_mrp_dict)} Records Updated!')
                     mrp_window.destroy()
@@ -641,11 +639,11 @@ class StoreBook:
                 except KeyError:
                     tkinter.messagebox.showerror(
                         'Error', f"Column Name for Part Number '{part_column}' or for MRP '{mrp_column}' is wrong!")
-                    gui_func_provider.focus_on(mrp_window)
+                    guiFuncProvider.focus_on(mrp_window)
 
             else:
                 tkinter.messagebox.showerror('Error!', 'No File Chosen!')
-                gui_func_provider.focus_on(mrp_window)
+                guiFuncProvider.focus_on(mrp_window)
 
         def update_mrp(_event=None):
             def pdf_picker():
@@ -654,7 +652,7 @@ class StoreBook:
                 open_path_ = filedialog.askopenfilename(
                     filetypes=files, initialdir=cur_wd)
                 pdf_ind.set(open_path_)
-                gui_func_provider.focus_on(mrp_window)
+                guiFuncProvider.focus_on(mrp_window)
 
             global mrp_window
             mrp_window = Toplevel(root)
@@ -665,11 +663,11 @@ class StoreBook:
                 'arial', 30, 'bold'), padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
 
-            gui_func_provider.custom_entry_labels(
+            guiFuncProvider.custom_entry_labels(
                 mrp_window, text='Part Number Column Name:', var=part_ind, r=2)
-            gui_func_provider.custom_entry_labels(
+            guiFuncProvider.custom_entry_labels(
                 mrp_window, text='MRP Column Name:', var=mrp_ind, r=3)
-            gui_func_provider.custom_entry_labels(
+            guiFuncProvider.custom_entry_labels(
                 mrp_window, text='Excel File:', var=pdf_ind, r=4, state='disabled')
 
             cal_btn = Button(mrp_window, text=img_text, bd=3, pady=1, padx=1,
@@ -683,7 +681,7 @@ class StoreBook:
             add_btn.grid(row=5, column=1)
 
         def total_stock(_event=None):
-            stock_list = func_provider.fetch(
+            stock_list = dbFuncProvider.fetch(
                 table='stock', field_list=['mrp*quantity'])
             sum_stock = sum(stock_list)
             tkinter.messagebox.showinfo(
@@ -691,7 +689,7 @@ class StoreBook:
 
         def export_xlsx(save_dir):
             # by default it fetches all items
-            record_list = func_provider.fetch('stock')
+            record_list = dbFuncProvider.fetch('stock')
 
             # slicing all product names from list
             slice_product_name = slice(0, len(record_list), 12)
@@ -826,7 +824,7 @@ class StoreBook:
 
         def check_warnings(_event=None):
             treeview.delete(*treeview.get_children())
-            output_list = func_provider.fetch(
+            output_list = dbFuncProvider.fetch(
                 'stock', field_list=[product_name_field, brand_name_field, quantity_field, warning_qty_field])
 
             list_needed = []
@@ -841,7 +839,7 @@ class StoreBook:
                     treeview.insert('', 'end', values=sep)
 
         def save_warning_sheet():
-            output_list = func_provider.fetch(
+            output_list = dbFuncProvider.fetch(
                 'stock', field_list=[product_name_field, brand_name_field, quantity_field, warning_qty_field])
 
             list_needed = []
@@ -954,17 +952,17 @@ class StoreBook:
             except ValueError:
                 tkinter.messagebox.showerror(
                     'Error!', 'MRP , Quantity and Warning Quantity must be number')
-                gui_func_provider.focus_on(up_screen)
+                guiFuncProvider.focus_on(up_screen)
 
             if tractor_up == '':
                 tkinter.messagebox.showerror(
                     'Error!', "Tractor Name Can't be empty!")
-                gui_func_provider.focus_on(up_screen)
+                guiFuncProvider.focus_on(up_screen)
 
             elif quantity_up == '':
                 tkinter.messagebox.showerror(
                     'Error!', "Quantity Can't be empty")
-                gui_func_provider.focus_on(up_screen)
+                guiFuncProvider.focus_on(up_screen)
 
             elif description_up == '':
                 up_description.set(None)
@@ -986,7 +984,7 @@ class StoreBook:
                     product_name_field: ['=', f"'{product_name_up}'"]
                 }
 
-                old_data = func_provider.fetch(
+                old_data = dbFuncProvider.fetch(
                     table='stock', conditions=conditions)
 
                 old_data[10] = str(current_date)
@@ -1066,10 +1064,10 @@ class StoreBook:
                     cursor.execute(up_command)
                     connection.commit()
 
-                gui_func_provider.focus_on(up_screen, state=False)
+                guiFuncProvider.focus_on(up_screen, state=False)
                 tkinter.messagebox.showinfo(
                     'Success', f"Record '{product_name_up}' updated successfully!")
-                # gui_func_provider.focus_on(inv_screen)
+                # guiFuncProvider.focus_on(inv_screen)
                 inv_screen.destroy()
                 up_screen.destroy()
 
@@ -1085,7 +1083,7 @@ class StoreBook:
                             filetypes=files, initialdir=cur_wd)
                         up_img.set(open_path_)
 
-                        gui_func_provider.focus_on(up_screen)
+                        guiFuncProvider.focus_on(up_screen)
 
                     # previous values
                     up_product_name.set(values_data[1])
@@ -1128,47 +1126,47 @@ class StoreBook:
 
                     # entries
                     """____________________________product_name____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Product Name:*', r=1, var=up_product_name, state='disabled')
                     """____________________________tractor_name____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Tractor Name:', r=2, var=up_tractor_name)
 
                     """____________________________brand_name____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Brand Name:*', r=3, var=up_brand_name, state='disabled')
                     """____________________________part number____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Part Number:', r=4, var=up_part_no, state='disabled')
 
                     """____________________________code____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Code:', r=5, var=up_code)
 
                     """____________________________mrp____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='MRP:*', r=6, var=up_mrp)
 
                     """____________________________box no____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Box Number:', r=7, var=up_box_no)
                     """____________________________description____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Description:', r=8, var=up_description)
 
                     """____________________________Quantity____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Quantity:*', r=9, var=up_quantity)
 
                     """____________________________Warning Quantity____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Warning Quantity:*', r=10, var=up_warning_qty)
 
                     """____________________________date____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Date:', r=11, var=up_date, state='disabled')
                     """_________________________________Image_____________________________________"""
-                    gui_func_provider.custom_entry_labels(
+                    guiFuncProvider.custom_entry_labels(
                         up_ent_frame, text='Image:', r=12, var=up_img, state='disabled')
                     cal_btn = Button(up_ent_frame, text=img_text, bd=3, pady=1, padx=1,
                                      font=('arial', 10, 'bold'), relief=FLAT, overrelief=RIDGE,
@@ -1251,7 +1249,7 @@ class StoreBook:
                 inv_screen, columns=treeview_columns, row=3)
 
             global total_data
-            total_data = func_provider.custom_fetching(table='stock')
+            total_data = dbFuncProvider.custom_fetching(table='stock')
             for treeview_data in total_data:
                 records_treeview.insert('', 'end', values=treeview_data)
 
@@ -1334,7 +1332,7 @@ class StoreBook:
 
             else:
                 try:
-                    all_brands = func_provider.fetch('brands', ['name'])
+                    all_brands = dbFuncProvider.fetch('brands', ['name'])
                     for i in range(len(all_brands)):
                         all_brands[i] = all_brands[i].lower()
 
@@ -1358,7 +1356,7 @@ class StoreBook:
 
                         connection.commit()
 
-                        gui_func_provider.focus_on(add_screen, state=False)
+                        guiFuncProvider.focus_on(add_screen, state=False)
                         tkinter.messagebox.showinfo(
                             'Success', f'Product "{product_name}" added Successfully!')
 
@@ -1374,7 +1372,7 @@ class StoreBook:
                             'Error!', f'"{brand_name}" Brand Name is not registered!')
                         register_brand_name()
                         brand_name_.set(brand_name)
-                        gui_func_provider.focus_on('add_screen')
+                        guiFuncProvider.focus_on('add_screen')
 
                 except mysql.errors.IntegrityError:
                     tkinter.messagebox.showerror(
@@ -1382,7 +1380,7 @@ class StoreBook:
 
         def add_inventory(_event=None):
             # checking if there is atleast 1 brand registered
-            brand_list = func_provider.fetch('brands', ['name'])
+            brand_list = dbFuncProvider.fetch('brands', ['name'])
             if len(brand_list) != 0:
                 def date_picker():
                     def select_date():
@@ -1405,7 +1403,7 @@ class StoreBook:
                         filetypes=files, initialdir=cur_wd)
                     add_img.set(open_path_)
 
-                    gui_func_provider.focus_on(add_screen)
+                    guiFuncProvider.focus_on(add_screen)
 
                 def store_br(br_name):
                     add_brand_name.set(br_name)
@@ -1462,7 +1460,7 @@ class StoreBook:
                 entry_trac.grid(row=2, column=1)
 
                 # code for auto complete
-                all_tractors = func_provider.fetch(
+                all_tractors = dbFuncProvider.fetch(
                     'stock', ['DISTINCT(tractor)'])
 
                 entry_trac.bind('<Tab>', lambda event, total_values=all_tractors,
@@ -1479,7 +1477,7 @@ class StoreBook:
                 entry_name.grid(row=3, column=1)
 
                 # code for auto complete
-                all_brands = func_provider.fetch('brands', ['name'])
+                all_brands = dbFuncProvider.fetch('brands', ['name'])
 
                 entry_name.bind('<Tab>', lambda event, total_values=all_brands,
                                 textvar=add_brand_name: auto_complete(total_values, textvar))
@@ -1491,40 +1489,40 @@ class StoreBook:
                 menu_ = Menu(menu_button, tearoff=0)
                 menu_button['menu'] = menu_
 
-                brands_data = func_provider.fetch('brands', ['name'])
+                brands_data = dbFuncProvider.fetch('brands', ['name'])
                 for brands in brands_data:
                     menu_.add_command(
                         label=f'{brands}', command=lambda br_name=brands: store_br(br_name))
 
                 """____________________________part number____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Part Number:', r=4, var=add_part_no)
 
                 """____________________________code____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Code:', r=5, var=add_code)
 
                 """____________________________mrp____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='MRP:*', r=6, var=add_mrp)
 
                 """____________________________box no____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Box Number:', r=7, var=add_box_no)
                 """____________________________description____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Description:', r=8, var=add_description)
 
                 """____________________________Quantity____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Quantity:*', r=9, var=add_quantity)
 
                 """____________________________Warning Quantity____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Warning Quantity:*', r=10, var=add_warning_qty)
 
                 """____________________________date____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Date:', r=11, var=add_date, state='disabled')
 
                 cal_btn = Button(add_ent_frame, text=cal_text, bd=3, pady=1, padx=1,
@@ -1533,7 +1531,7 @@ class StoreBook:
                 cal_btn.grid(row=11, column=2)
 
                 """____________________________img____________________________________"""
-                gui_func_provider.custom_entry_labels(
+                guiFuncProvider.custom_entry_labels(
                     add_ent_frame, text='Image:', r=12, var=add_img, state='disabled')
 
                 try:
@@ -1551,7 +1549,7 @@ class StoreBook:
                 except Exception:
                     tkinter.messagebox.showwarning(
                         'Warning!', f"Icon is deleted so program will use '{img_text}' instead of icon")
-                    gui_func_provider.focus_on(add_screen)
+                    guiFuncProvider.focus_on(add_screen)
 
                     cal_btn = Button(add_ent_frame, text=img_text, bd=3, pady=1, padx=1,
                                      font=('arial', 10, 'bold'), relief=FLAT, overrelief=RIDGE,

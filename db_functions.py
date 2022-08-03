@@ -1,11 +1,14 @@
 import os
 import itertools
+from mysqlx import ProgrammingError
 from variables import password, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
 from gui_funcs import GuiFuncs
 import datetime
 from operator import itemgetter
 from db_connection import cursor, connection
-
+from mysql.connector import errors 
+from initialize import init_tables
+from sys import exit
 
 gui_func_provider = GuiFuncs()
 
@@ -50,11 +53,16 @@ class DatabaseFunctions:
                         fetch_command += f" {field} {op_val[0]} {op_val[1]}"
                     else:
                         fetch_command += f" {field} {op_val[0]} {op_val[1]} {op_val[2]}"
-
-        cursor.execute(fetch_command)
-        fetched_tuple = cursor.fetchall()
-        fetched_list = list(itertools.chain(*fetched_tuple))
-        return fetched_list
+        
+        try:
+            cursor.execute(fetch_command)
+            fetched_tuple = cursor.fetchall()
+            fetched_list = list(itertools.chain(*fetched_tuple))
+            return fetched_list
+        
+        except errors.ProgrammingError:
+            init_tables()
+            exit(0)
 
     def import_data(self):
         os.chdir(DB_FILE_DIR)

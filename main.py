@@ -4,19 +4,16 @@ import os
 import tkinter.messagebox
 from tkinter import filedialog, ttk
 from tkinter import *
-
 from db_connection import cursor, connection
 from gui_funcs import GuiFuncs
 from register_brand import RegisterBrand
 from db_functions import DatabaseFunctions
-from variables import MYSQL_BIN, file_name, cur_wd, DB_FILE_DIR, database, file_name_xl, ICON_PATH, password
-from init_dirs import init_dirs
+from variables import MYSQL_BIN, file_name, cur_wd, DB_FILE_DIR, database, file_name_xl, ICON_PATH, password, product_name_field, tractor_field, brand_name_field, part_number_field, code_field, mrp_field, box_no_field, description_field, quantity_field, warning_qty_field, date_field, image_field
+
+from initialize import init_dirs
 from interface import CustomTreeview
 
 init_dirs()  # initializing directories in use
-func_provider = DatabaseFunctions()
-func_provider.init_db(database)   # initializing database for use
-func_provider.init_tables()   # initializing tables in use
 
 try:
     from tkcalendar import Calendar
@@ -45,6 +42,7 @@ class StoreBook:
         # Objects
         Registrar = RegisterBrand()
         gui_func_provider = GuiFuncs()
+        func_provider = DatabaseFunctions()
 
         # formatting
         button_color = 'gold2'
@@ -180,7 +178,7 @@ class StoreBook:
 
         def delete_product_finally(_event=None):
             del_name = del_product_name.get()
-            all_products = func_provider.fetch('stock', ['product_name'])
+            all_products = func_provider.fetch('stock', [product_name_field])
 
             for i in range(len(all_products)):  # converting to lower case
                 all_products[i] = all_products[i].lower()
@@ -191,7 +189,7 @@ class StoreBook:
                 if permission is True:
                     # sending data to recently deleted table
                     conditions = {
-                        'product_name': ['=', f"'{del_name}'"]
+                        product_name_field: ['=', f"'{del_name}'"]
                     }
                     # this command will be like, SELECT * from stock WHERE product_name = 'del_name'
                     del_data_ = func_provider.fetch(
@@ -219,12 +217,12 @@ class StoreBook:
                         upd_command = f"UPDATE recently_deleted SET tractor='{rd_tractor}',part_number='{rd_part}',"\
                             f"code='{rd_code}',mrp={rd_mrp},box_no='{rd_box}',description='{rd_desc}',quantity={rd_qty},"\
                             f"warning_qty={rd_war},date='{str(current_date)}',image='{rd_img}'"\
-                            f"WHERE product_name='{del_name}'"
+                            f"WHERE {product_name_field}='{del_name}'"
                         cursor.execute(upd_command)
                         connection.commit()
 
                     if rd_qty == 0:  # if quantity for product is 0 then and only then it can be deleted
-                        com = f'DELETE FROM stock where product_name = "{del_name}"'
+                        com = f'DELETE FROM stock where {product_name_field} = "{del_name}"'
                         cursor.execute(com)
                         connection.commit()
                         tkinter.messagebox.showinfo(
@@ -346,15 +344,25 @@ class StoreBook:
             for treeview_data in total_data:
                 rec_treeview.insert('', 'end', values=treeview_data)
 
-        def updation_transactions():
+        def updation_transactions(_event=None):
             tran_window = Toplevel(root)
             tran_window.title('Recent Updation Records')
             tran_window.geometry('1350x1000')
+
+            before_color = 'light blue'
+            after_color = 'pale turquoise'
 
             # top label
             lbl_name = Label(tran_window, text="Updation Records", font=('arial', 30, 'bold'),
                              padx=2, pady=2, bd=2)
             lbl_name.grid(row=0, column=0)
+
+            lbl_name = Label(tran_window, text="Before: ", font=('arial', 15, 'bold'),
+                             padx=2, pady=2, bd=2, background=before_color)
+            lbl_name.grid(row=1, column=0)
+            lbl_name = Label(tran_window, text="  After:  ", font=('arial', 15, 'bold'),
+                             padx=2, pady=2, bd=2, background=after_color)
+            lbl_name.grid(row=2, column=0)
 
             def _search_(sort_by):
                 searched = updation_search.get()
@@ -364,7 +372,7 @@ class StoreBook:
             """menu button________________________"""
             menu_bar = ttk.Menubutton(
                 tran_window, text='Sort By', cursor='mouse')
-            menu_bar.grid(row=1, column=2)
+            menu_bar.grid(row=3, column=2)
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
@@ -379,22 +387,22 @@ class StoreBook:
             # treeview
             global tran_treeview
             tran_treeview = CustomTreeview(
-                tran_window, columns=treeview_columns)
+                tran_window, columns=treeview_columns, row=4)
 
             # search bar
             sb_entry = Entry(
                 tran_window, textvariable=updation_search, width=110, font=('arial', 15))
-            sb_entry.grid(row=1, column=0)
+            sb_entry.grid(row=3, column=0)
 
             search_btn = Button(tran_window, text="Search", bd=1, pady=1, padx=1,
                                 relief=RIDGE, overrelief=SUNKEN, cursor='mouse', font=('arial', 8, 'italic'),
                                 bg='snow')
-            search_btn.grid(row=1, column=1)
+            search_btn.grid(row=3, column=1)
             sb_entry.bind('<KeyRelease>', lambda event,
                           sort_by=None: _search_(sort_by))
 
-            tran_treeview.tag_configure('oddrow', background='tomato')
-            tran_treeview.tag_configure('evenrow', background='chartreuse2')
+            tran_treeview.tag_configure('oddrow', background=before_color)
+            tran_treeview.tag_configure('evenrow', background=after_color)
 
             # getting data from database to add in treeview
             before_data = func_provider.custom_fetching(table='before_update')
@@ -819,7 +827,7 @@ class StoreBook:
         def check_warnings(_event=None):
             treeview.delete(*treeview.get_children())
             output_list = func_provider.fetch(
-                'stock', field_list=['product_name', 'brand_name', 'quantity', 'warning_qty'])
+                'stock', field_list=[product_name_field, brand_name_field, quantity_field, warning_qty_field])
 
             list_needed = []
             i = 0
@@ -834,7 +842,7 @@ class StoreBook:
 
         def save_warning_sheet():
             output_list = func_provider.fetch(
-                'stock', field_list=['product_name', 'brand_name', 'quantity', 'warning_qty'])
+                'stock', field_list=[product_name_field, brand_name_field, quantity_field, warning_qty_field])
 
             list_needed = []
 
@@ -975,7 +983,7 @@ class StoreBook:
 
             else:
                 conditions = {
-                    'product_name': ['=', f"'{product_name_up}'"]
+                    product_name_field: ['=', f"'{product_name_up}'"]
                 }
 
                 old_data = func_provider.fetch(
@@ -1000,17 +1008,17 @@ class StoreBook:
                     connection.commit()
 
                 except mysql.errors.IntegrityError:
-                    up_command = f"UPDATE before_update SET tractor='{old_tractor}',part_number='{old_part}',"\
-                        f"code='{old_code}',mrp={old_mrp},box_no='{old_box}',description='{old_desc}',quantity={old_qty},"\
-                        f"warning_qty={old_war},date='{str(current_date)}',image='{old_img}'"\
-                        f"WHERE product_name='{old_name}'"
+                    up_command = f"UPDATE before_update SET {tractor_field}='{old_tractor}',{part_number_field}='{old_part}',"\
+                        f"{code_field}='{old_code}',{mrp_field}={old_mrp},{box_no_field}='{old_box}',{description_field}='{old_desc}',{quantity_field}={old_qty},"\
+                        f"{warning_qty_field}={old_war},{date_field}='{str(current_date)}',{image_field}='{old_img}'"\
+                        f"WHERE {product_name_field}='{old_name}'"
                     cursor.execute(up_command)
                     connection.commit()
 
                 # _________________________________updating the data
-                update_command = f'UPDATE stock SET tractor="{tractor_up}", code="{code_up}", mrp={mrp_up}, box_no="{box_no_up}",'\
-                                 f'description="{description_up}", quantity={quantity_up}, warning_qty={warning_qty_up}, image="{img_up}"'\
-                                 f"where product_name='{product_name_up}'"
+                update_command = f'UPDATE stock SET {tractor_field}="{tractor_up}", {code_field}="{code_up}", {mrp_field}={mrp_up}, {box_no_field}="{box_no_up}",'\
+                                 f'{description_field}="{description_up}", {quantity_field}={quantity_up}, {warning_qty_field}={warning_qty_up}, image="{img_up}"'\
+                                 f"where {product_name_field}='{product_name_up}'"
                 cursor.execute(update_command)
                 connection.commit()
 
@@ -1021,10 +1029,10 @@ class StoreBook:
                     connection.commit()
 
                 except mysql.errors.IntegrityError:
-                    up_command = f"UPDATE after_update SET tractor='{tractor_up}',part_number='{part_no_up}',"\
-                        f"code='{code_up}',mrp={mrp_up},box_no='{box_no_up}',description='{description_up}',quantity={quantity_up},"\
-                        f"warning_qty={warning_qty_up},date='{str(current_date)}',image='{img_up}'"\
-                        f"WHERE product_name='{product_name_up}'"
+                    up_command = f"UPDATE after_update SET {tractor_field}='{tractor_up}',{part_number_field}='{part_no_up}',"\
+                        f"{code_field}='{code_up}',{mrp_field}={mrp_up},{box_no_field}='{box_no_up}',{description_field}='{description_up}',quantity={quantity_up},"\
+                        f"{warning_qty_field}={warning_qty_up},{date_field}='{str(current_date)}',{image_field}='{img_up}'"\
+                        f"WHERE {product_name_field}='{product_name_up}'"
                     cursor.execute(up_command)
                     connection.commit()
 
@@ -1051,10 +1059,10 @@ class StoreBook:
                     connection.commit()
 
                 except mysql.errors.IntegrityError:
-                    up_command = f"UPDATE {table} SET tractor='{tractor_up}',part_number='{part_no_up}',"\
-                        f"code='{code_up}',mrp={mrp_up},box_no='{box_no_up}',description='{description_up}',quantity={upd_qty},"\
-                        f"warning_qty={warning_qty_up},date='{str(current_date)}',image='{img_up}'"\
-                        f"WHERE product_name='{product_name_up}'"
+                    up_command = f"UPDATE {table} SET {tractor_field}='{tractor_up}',{part_number_field}='{part_no_up}',"\
+                        f"{code_field}='{code_up}',{mrp_field}={mrp_up},{box_no_field}='{box_no_up}',{description_field}='{description_up}',{quantity_field}={upd_qty},"\
+                        f"{warning_qty_field}={warning_qty_up},{date_field}='{str(current_date)}',{image_field}='{img_up}'"\
+                        f"WHERE {product_name_field}='{product_name_up}'"
                     cursor.execute(up_command)
                     connection.commit()
 
@@ -1331,20 +1339,20 @@ class StoreBook:
                         all_brands[i] = all_brands[i].lower()
 
                     if brand_name.lower() in all_brands:
-                        add_insert_command = 'INSERT INTO stock(product_name, tractor, brand_name, part_number, code, mrp,'\
-                            'box_no, description, quantity, warning_qty, date, image)'\
+                        add_insert_command = f'INSERT INTO stock({product_name_field},{tractor_field}, {brand_name_field}, {part_number_field}, {code_field}, {mrp_field},'\
+                            f'{box_no_field}, {description_field}, {quantity_field}, {warning_qty_field}, {date_field}, {image_field})'\
                             'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
                         values = (product_name, tractor_name, brand_name, part_number, code, mrp, box_no,
                                   description, quantity, warning_qty, date_, add_image)
                         cursor.execute(add_insert_command, values)
 
-                        add_insert_command_ = 'INSERT INTO recently_added(product_name, tractor, brand_name, part_number, code, mrp,'\
-                            'box_no, description, quantity, warning_qty, date, image)'\
+                        add_insert_command_ = f'INSERT INTO recently_added({product_name_field},{tractor_field}, {brand_name_field}, {part_number_field}, {code_field}, {mrp_field},'\
+                            f'{box_no_field}, {description_field}, {quantity_field}, {warning_qty_field}, {date_field}, {image_field})'\
                             'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
                         cursor.execute(add_insert_command_, values)
 
-                        add_insert_command__ = 'INSERT INTO stock_in(product_name, tractor, brand_name, part_number, code, mrp,'\
-                            'box_no, description, quantity, warning_qty, date, image)'\
+                        add_insert_command__ = f'INSERT INTO stock_in({product_name_field},{tractor_field}, {brand_name_field}, {part_number_field}, {code_field}, {mrp_field},'\
+                            f'{box_no_field}, {description_field}, {quantity_field}, {warning_qty_field}, {date_field}, {image_field})'\
                             'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
                         cursor.execute(add_insert_command__, values)
 
@@ -1714,7 +1722,8 @@ class StoreBook:
         root.bind('<Control-m>', update_mrp)
         root.bind('<Control-d>', delete_product)
         root.bind('<Control-i>', inventory)  # to open inventory window
-        root.bind('<Control-Alt-s>', save_db)  # not working
+        root.bind('<Control-Alt-s>', save_db)
+        root.bind('<Control-Alt-u>', updation_transactions)
 
         root.protocol("WM_DELETE_WINDOW", end_func)
 

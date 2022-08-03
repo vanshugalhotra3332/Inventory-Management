@@ -1,103 +1,35 @@
-import mysql.connector as mysql
-import tkinter.messagebox
-import sys
 import os
 import itertools
-from variables import password, user, host, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
+from variables import password, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
 from gui_funcs import GuiFuncs
 import datetime
 from operator import itemgetter
-try:
-    from db_connection import cursor, connection
+from db_connection import cursor, connection
 
-except mysql.errors.ProgrammingError:
-    print('Database Created Successfully!')
 
 gui_func_provider = GuiFuncs()
 
 
 class DatabaseFunctions:
-    def init_db(self, database):
-        connection_ = mysql.connect(
-            host=host,
-            user=user,
-            password=password
-        )
-        cursor_ = connection_.cursor()
-        cursor_.execute('SHOW DATABASES;')
-        data_tuple = cursor_.fetchall()
-        data_list = list(itertools.chain(*data_tuple))
+    def create_table(self, table, fields_dict, foreign_key=None):
+        command = f"CREATE TABLE IF NOT EXISTS {table} ("
 
-        if database not in data_list:
-            command = f'CREATE DATABASE {database}'
-            cursor_.execute(command)
-
-    def init_tables(self):
-        try:
-            table_command_brand = 'CREATE TABLE IF NOT EXISTS brands(name varchar(100) PRIMARY KEY)'
-            cursor.execute(table_command_brand)
-
-            table_command_stock = "CREATE TABLE IF NOT EXISTS stock(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_stock)
-
-            table_command_bu = "CREATE TABLE IF NOT EXISTS before_update(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_bu)
-
-            table_command_au = "CREATE TABLE IF NOT EXISTS after_update(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_au)
-
-            table_command_rd = "CREATE TABLE IF NOT EXISTS recently_deleted(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_rd)
-
-            table_command_ra = "CREATE TABLE IF NOT EXISTS recently_added(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_ra)
-
-            table_command_si = "CREATE TABLE IF NOT EXISTS stock_in(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_si)
-
-            table_command_so = "CREATE TABLE IF NOT EXISTS stock_out(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_so)
-
-            table_command_gb = "CREATE TABLE IF NOT EXISTS garbage(product_name varchar(250) PRIMARY KEY,"\
-                "tractor Varchar(50) NOT NULL,brand_name varchar(100),part_number varchar(200) DEFAULT NULL UNIQUE,"\
-                "code varchar(30), mrp int NOT NULL, box_no varchar(30), description varchar(255),"\
-                "quantity int NOT NULL , warning_qty int NOT NULL, date varchar(200), image varchar(255),"\
-                "FOREIGN KEY(brand_name) references brands(name) ON UPDATE CASCADE)"
-            cursor.execute(table_command_gb)
-
-            connection.commit()
-        except NameError:
-            tkinter.messagebox.showinfo(
-                'Success!', 'Everything is set Kindly rerun the code :)')
-            sys.exit()
+        i = 0
+        # details includes a tuple like this, (field_name, datatype(length), constraint if any)
+        for details in fields_dict.values():
+            i += 1
+            command += " ".join(details)
+            if i != len(fields_dict):  # to avoid appending , at last
+                command += ","
+                
+        if foreign_key:
+            command += f' , FOREIGN KEY ({foreign_key["field"]}) references {foreign_key["reference_table"]}({foreign_key["reference_field"]}) ON UPDATE CASCADE '
+            command += ")"
+        else:
+            command += ")"
+            
+        cursor.execute(command)
+        connection.commit()
 
     def fetch(self, table, field_list=["*"], conditions={}):
         """This function fetches data from database and returns a list"""
@@ -247,3 +179,4 @@ class DatabaseFunctions:
 
         total_data.reverse()
         return total_data
+

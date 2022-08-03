@@ -1,7 +1,7 @@
 from dataclasses import fields
 from tkinter import *
 from tkinter import ttk
-import itertools
+import re
 from db_connection import cursor
 from variables import db_fields, database_fields
 from gui_funcs import GuiFuncs
@@ -33,10 +33,23 @@ class CustomTreeview(ttk.Treeview):
         for cols in columns:
             # .title() will capitalize the first letter
             self.heading(cols, text=cols.title())
-
+            
+        # extracting the length of the columns in database, using regex
+        pattern = r'[a-zA-Z]+\((\d+)\)'  # this will extract numbers from varchar(244), 
+        length_strs = [database_fields[val][1] for val in columns] # extracting only datatype(length) from database_fields dict, based on our columns
+        lengths = []
+        
+        for eachStr in length_strs:
+            r = re.search(pattern, eachStr)
+            if r: # if there is a match, then our length extracted will be stored in r[1]
+                lengths.append(r[1])
+            else: # if there is no match, in case of "int", re.search returns None, so for none values we set column width = 60
+                lengths.append(60)
+                
+        
         # setting up column widths
-        for field in columns:
-            self.column(field, width=database_fields[field][1])
+        for i in range(len(columns)):
+            self.column(columns[i], width=lengths[i])
 
         # placing the treeview on grid
         self.grid(row=row, column=column)

@@ -1257,6 +1257,7 @@ class StoreBook:
 
             # for updating values
             records_treeview.bind('<Control-u>', update)
+            inv_screen.bind('<Escape>', lambda event, screen=inv_screen: exit_system(screen))
 
         def add_finally(_event=None):
             # fetching variable values
@@ -1403,6 +1404,7 @@ class StoreBook:
                 add_screen = Toplevel(root)
                 add_screen.title('Add Inventory')
                 add_screen.geometry('1000x900')
+                add_screen.bind('<Escape>', lambda event, screen=add_screen: exit_system(screen))
 
                 # ignore frames (pretty wasting of lines for formatting)
                 main_frame_ = Frame(add_screen, bd=10)
@@ -1696,17 +1698,18 @@ class StoreBook:
         tran_sub.add_command(label='Stock OUTs', command=stock_out)
 
         # bindings for shortcut keys
+        root.bind('<Alt-i>', add_inventory)    # for adding new product
         root.bind('<Control-r>', register_brand_name)
-        root.bind('<Control-Alt-i>', add_inventory)    # for adding new product
-        root.bind('<Control-Alt-r>', update_brand_name)    # not working
+        root.bind('<Alt-r>', update_brand_name)    
         root.bind('<Control-w>', check_warnings)
         root.bind('<Control-s>', save_xlsx)
         root.bind('<Control-t>', total_stock)
         root.bind('<Control-m>', update_mrp)
         root.bind('<Control-d>', delete_product)
         root.bind('<Control-i>', inventory)  # to open inventory window
-        root.bind('<Control-Alt-s>', save_db)
-        root.bind('<Control-Alt-u>', updation_transactions)
+        root.bind('<Alt-s>', save_db)
+        root.bind('<Alt-u>', updation_transactions)
+        root.bind('<Escape>', lambda event, screen=root: exit_system(screen))
 
         root.protocol("WM_DELETE_WINDOW", end_func)
 

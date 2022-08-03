@@ -1,7 +1,7 @@
 import os
 
 password = '2332'
-database = 'store_record_test'
+database = 'store_record'
 host = 'localhost'
 user = 'root'
 

@@ -1,6 +1,5 @@
 import os
 import itertools
-from mysqlx import ProgrammingError
 from variables import password, database, file_name, MYSQL_BIN, DB_FILE_DIR, db_fields
 from gui_funcs import GuiFuncs
 import datetime
@@ -8,7 +7,6 @@ from operator import itemgetter
 from db_connection import cursor, connection
 from mysql.connector import errors 
 from initialize import init_tables
-from sys import exit
 
 gui_func_provider = GuiFuncs()
 
@@ -62,7 +60,15 @@ class DatabaseFunctions:
         
         except errors.ProgrammingError:
             init_tables()
-            exit(0)
+            
+    def insert(self, table, data):
+        command = f"INSERT INTO {table} VALUES ("
+        for _ in range(len(data) - 1):
+            command += "%s, "
+        command += "%s)"
+        
+        cursor.execute(command, data)
+        connection.commit()
 
     def import_data(self):
         os.chdir(DB_FILE_DIR)

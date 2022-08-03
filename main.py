@@ -206,10 +206,8 @@ class StoreBook:
                     rd_qty = del_data[8]
                     rd_war = del_data[9]
                     rd_img = del_data[11]
-                    try:
-                        insd_command = 'INSERT INTO recently_deleted VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-                        cursor.execute(insd_command, del_data)
-                        connection.commit()
+                    try:                        
+                        dbFuncProvider.insert(table="recently_deleted", data = del_data)
 
                     except mysql.errors.IntegrityError:  # if we have deleted this product already, then we will just update the data
                         upd_command = f"UPDATE recently_deleted SET tractor='{rd_tractor}',part_number='{rd_part}',"\
@@ -1001,9 +999,7 @@ class StoreBook:
                 old_img = old_data[11]
                 # _________________________adding data to before_update table
                 try:
-                    ins_command = 'INSERT INTO before_update VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-                    cursor.execute(ins_command, old_data)
-                    connection.commit()
+                    dbFuncProvider.insert(table="before_update", data=old_data)
 
                 except mysql.errors.IntegrityError:
                     up_command = f"UPDATE before_update SET {tractor_field}='{old_tractor}',{part_number_field}='{old_part}',"\
@@ -1022,9 +1018,7 @@ class StoreBook:
 
                 # ___________________________adding data to after_update table
                 try:
-                    ins_command = 'INSERT INTO after_update VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-                    cursor.execute(ins_command, update_data)
-                    connection.commit()
+                    dbFuncProvider.insert("after_update", update_data)
 
                 except mysql.errors.IntegrityError:
                     up_command = f"UPDATE after_update SET {tractor_field}='{tractor_up}',{part_number_field}='{part_no_up}',"\
@@ -1052,9 +1046,7 @@ class StoreBook:
                     table = 'garbage'
 
                 try:
-                    ins_command = f'INSERT INTO {table} VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-                    cursor.execute(ins_command, up_data)
-                    connection.commit()
+                    dbFuncProvider.insert(table=table, data=up_data)
 
                 except mysql.errors.IntegrityError:
                     up_command = f"UPDATE {table} SET {tractor_field}='{tractor_up}',{part_number_field}='{part_no_up}',"\
@@ -1333,29 +1325,16 @@ class StoreBook:
             else:
                 try:
                     all_brands = dbFuncProvider.fetch('brands', ['name'])
-                    for i in range(len(all_brands)):
-                        all_brands[i] = all_brands[i].lower()
 
                     if brand_name.lower() in all_brands:
-                        add_insert_command = f'INSERT INTO stock({product_name_field},{tractor_field}, {brand_name_field}, {part_number_field}, {code_field}, {mrp_field},'\
-                            f'{box_no_field}, {description_field}, {quantity_field}, {warning_qty_field}, {date_field}, {image_field})'\
-                            'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                            
                         values = (product_name, tractor_name, brand_name, part_number, code, mrp, box_no,
                                   description, quantity, warning_qty, date_, add_image)
-                        cursor.execute(add_insert_command, values)
-
-                        add_insert_command_ = f'INSERT INTO recently_added({product_name_field},{tractor_field}, {brand_name_field}, {part_number_field}, {code_field}, {mrp_field},'\
-                            f'{box_no_field}, {description_field}, {quantity_field}, {warning_qty_field}, {date_field}, {image_field})'\
-                            'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-                        cursor.execute(add_insert_command_, values)
-
-                        add_insert_command__ = f'INSERT INTO stock_in({product_name_field},{tractor_field}, {brand_name_field}, {part_number_field}, {code_field}, {mrp_field},'\
-                            f'{box_no_field}, {description_field}, {quantity_field}, {warning_qty_field}, {date_field}, {image_field})'\
-                            'VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-                        cursor.execute(add_insert_command__, values)
-
-                        connection.commit()
-
+                        
+                        dbFuncProvider.insert('stock', values)
+                        dbFuncProvider.insert('recently_added', values)
+                        dbFuncProvider.insert('stock_in', values)
+                        
                         guiFuncProvider.focus_on(add_screen, state=False)
                         tkinter.messagebox.showinfo(
                             'Success', f'Product "{product_name}" added Successfully!')

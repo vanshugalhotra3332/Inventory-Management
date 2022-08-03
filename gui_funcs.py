@@ -1,7 +1,6 @@
 from tkinter import *
 import re
 
-
 class GuiFuncs:
     def custom_entry_labels(self, screen, text, r, var, state='normal'):
         lbl_name = Label(screen, text=text, font=('arial', 15, 'bold'),

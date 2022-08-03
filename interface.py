@@ -3,7 +3,7 @@ from tkinter import *
 from tkinter import ttk
 import re
 from db_connection import cursor
-from variables import db_fields, database_fields
+from variables import db_fields, database_fields, product_name_field, part_number_field, description_field
 from gui_funcs import GuiFuncs
 from db_functions import DatabaseFunctions
 
@@ -61,9 +61,9 @@ class CustomTreeview(ttk.Treeview):
                 self.delete(*self.get_children())
                 if not sort_by:  # if user did'nt provided sort by field then we will use product_name, desc, part_Number by default
                     conditions = {
-                        'product_name': ['LIKE', f"'{parameter}'", 'OR'],
-                        'part_number': ['LIKE', f"'{parameter}'", 'OR'],
-                        'description': ['LIKE', f"'{parameter}'"]
+                        product_name_field: ['LIKE', f"'{parameter}'", 'OR'],
+                        part_number_field: ['LIKE', f"'{parameter}'", 'OR'],
+                        description_field: ['LIKE', f"'{parameter}'"]
                     }
 
                 else:

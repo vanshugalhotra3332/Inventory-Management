@@ -206,24 +206,23 @@ class StoreBook:
                     rd_qty = del_data[8]
                     rd_war = del_data[9]
                     rd_img = del_data[11]
-                    try:                        
-                        dbFuncProvider.insert(table="recently_deleted", data = del_data)
-
-                    except mysql.errors.IntegrityError:  # if we have deleted this product already, then we will just update the data
-                        upd_command = f"UPDATE recently_deleted SET tractor='{rd_tractor}',part_number='{rd_part}',"\
-                            f"code='{rd_code}',mrp={rd_mrp},box_no='{rd_box}',description='{rd_desc}',quantity={rd_qty},"\
-                            f"warning_qty={rd_war},date='{str(current_date)}',image='{rd_img}'"\
-                            f"WHERE {product_name_field}='{del_name}'"
-                        cursor.execute(upd_command)
-                        connection.commit()
-
                     if rd_qty == 0:  # if quantity for product is 0 then and only then it can be deleted
-                        com = f'DELETE FROM stock where {product_name_field} = "{del_name}"'
-                        cursor.execute(com)
-                        connection.commit()
-                        tkinter.messagebox.showinfo(
-                            'Success!', f"Product '{del_name}' delete successfully!")
-                        delete_window.destroy()
+                        
+                        dbFuncProvider.delete(table='stock', conditions={product_name_field: ['=', f"'{del_name}'"]})
+                        try:                        
+                            dbFuncProvider.insert(table="recently_deleted", data = del_data)
+
+                        except mysql.errors.IntegrityError:  # if we have deleted this product already, then we will just update the data
+                            upd_command = f"UPDATE recently_deleted SET tractor='{rd_tractor}',part_number='{rd_part}',"\
+                                f"code='{rd_code}',mrp={rd_mrp},box_no='{rd_box}',description='{rd_desc}',quantity={rd_qty},"\
+                                f"warning_qty={rd_war},date='{str(current_date)}',image='{rd_img}'"\
+                                f"WHERE {product_name_field}='{del_name}'"
+                            cursor.execute(upd_command)
+                            connection.commit()
+                            
+                            tkinter.messagebox.showinfo(
+                                'Success!', f"Product '{del_name}' delete successfully!")
+                            delete_window.destroy()
 
                     else:
                         tkinter.messagebox.showerror(
@@ -256,13 +255,13 @@ class StoreBook:
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
-                label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
+                label='Brand Name', command=lambda sort_by=brand_name_field: search_(sort_by))
             menu_.add_command(
-                label='MRP', command=lambda sort_by="mrp": search_(sort_by))
+                label='MRP', command=lambda sort_by=mrp_field: search_(sort_by))
             menu_.add_command(label='Box Number',
-                              command=lambda sort_by="box_no": search_(sort_by))
+                              command=lambda sort_by=box_no_field: search_(sort_by))
             menu_.add_command(
-                label='date', command=lambda sort_by="date": search_(sort_by))
+                label='date', command=lambda sort_by=date_field: search_(sort_by))
 
             # treeview
             global reca_treeview
@@ -309,13 +308,13 @@ class StoreBook:
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
-                label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
+                label='Brand Name', command=lambda sort_by=brand_name_field: search_(sort_by))
             menu_.add_command(
-                label='MRP', command=lambda sort_by="mrp": search_(sort_by))
+                label='MRP', command=lambda sort_by=mrp_field: search_(sort_by))
             menu_.add_command(label='Box Number',
-                              command=lambda sort_by="box_no": search_(sort_by))
+                              command=lambda sort_by=box_no_field: search_(sort_by))
             menu_.add_command(
-                label='date', command=lambda sort_by="date": search_(sort_by))
+                label='date', command=lambda sort_by=date_field: search_(sort_by))
 
             # treeview
             global rec_treeview
@@ -372,13 +371,13 @@ class StoreBook:
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
-                label='Brand Name', command=lambda sort_by="brand_name": _search_(sort_by))
+                label='Brand Name', command=lambda sort_by=brand_name_field: _search_(sort_by))
             menu_.add_command(
-                label='MRP', command=lambda sort_by="mrp": _search_(sort_by))
+                label='MRP', command=lambda sort_by=mrp_field: _search_(sort_by))
             menu_.add_command(
-                label='Box Number', command=lambda sort_by="box_no": _search_(sort_by))
+                label='Box Number', command=lambda sort_by=box_no_field: _search_(sort_by))
             menu_.add_command(
-                label='date', command=lambda sort_by="date": _search_(sort_by))
+                label='date', command=lambda sort_by=date_field: _search_(sort_by))
 
             # treeview
             global tran_treeview
@@ -435,13 +434,13 @@ class StoreBook:
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
-                label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
+                label='Brand Name', command=lambda sort_by=brand_name_field: search_(sort_by))
             menu_.add_command(
-                label='MRP', command=lambda sort_by="mrp": search_(sort_by))
+                label='MRP', command=lambda sort_by=mrp_field: search_(sort_by))
             menu_.add_command(label='Box Number',
-                              command=lambda sort_by="box_no": search_(sort_by))
+                              command=lambda sort_by=box_no_field: search_(sort_by))
             menu_.add_command(
-                label='date', command=lambda sort_by="date": search_(sort_by))
+                label='date', command=lambda sort_by=date_field: search_(sort_by))
 
             # treeview
             global si_treeview
@@ -486,13 +485,13 @@ class StoreBook:
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
-                label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
+                label='Brand Name', command=lambda sort_by=brand_name_field: search_(sort_by))
             menu_.add_command(
-                label='MRP', command=lambda sort_by="mrp": search_(sort_by))
+                label='MRP', command=lambda sort_by=mrp_field: search_(sort_by))
             menu_.add_command(label='Box Number',
-                              command=lambda sort_by="box_no": search_(sort_by))
+                              command=lambda sort_by=box_no_field: search_(sort_by))
             menu_.add_command(
-                label='date', command=lambda sort_by="date": search_(sort_by))
+                label='date', command=lambda sort_by=date_field: search_(sort_by))
 
             # treeview
             global so_treeview
@@ -1199,17 +1198,17 @@ class StoreBook:
             menu_ = Menu(menu_bar, tearoff=0)
             menu_bar["menu"] = menu_
             menu_.add_command(
-                label='Brand Name', command=lambda sort_by="brand_name": search_(sort_by))
+                label='Brand Name', command=lambda sort_by=brand_name_field: search_(sort_by))
             menu_.add_command(
-                label='MRP', command=lambda sort_by="mrp": search_(sort_by))
+                label='MRP', command=lambda sort_by=mrp_field: search_(sort_by))
             menu_.add_command(label='Box Number',
-                              command=lambda sort_by="box_no": search_(sort_by))
+                              command=lambda sort_by=box_no_field: search_(sort_by))
             menu_.add_command(
-                label='date', command=lambda sort_by="date": search_(sort_by))
+                label='date', command=lambda sort_by=date_field: search_(sort_by))
             menu_.add_command(
-                label='quantity', command=lambda sort_by="quantity": search_(sort_by))
+                label='quantity', command=lambda sort_by=quantity_field: search_(sort_by))
             menu_.add_command(label='warning Quantity',
-                              command=lambda sort_by="warning_qty": search_(sort_by))
+                              command=lambda sort_by=warning_qty_field: search_(sort_by))
 
             # top label
             lbl_name = Label(inv_screen, text="Inventory", font=('arial', 30, 'bold'),

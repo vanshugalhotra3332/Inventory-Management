@@ -32,25 +32,41 @@ class DatabaseFunctions:
         cursor.execute(command)
         connection.commit()
 
+    def set_conditions(self, command, conditions):
+        """Will recieve a normal MYSQL command and Add conditions to it 
+           example, 
+            command = SELECT * from stock WHERE product_name LIKE KPCC OR part_number LIKE KPCC OR description LIKE KPCC
+            conditions = {
+                        'product_name': ['LIKE', "KPCC", 'OR'],
+                        'part_number': ['LIKE', "KPCC", 'OR'],
+                        'description': ['LIKE', "KPCC'"]
+                    } 
+                    
+            return command = SELECT * from stock 
+        
+        """
+        command += " WHERE"  # we only want where once
+        if len(conditions) == 1:  # if we have only one condition
+            field = list(conditions.keys())[0]
+            op_val = conditions[field]
+            command += f" {field} {op_val[0]} {op_val[1]}"
+        else:  # for multiple conditions
+            i = 0
+            for field, op_val in conditions.items():  # appending each condition
+                i += 1
+                if i == len(conditions):  # to avoid appending this for last condition
+                    command += f" {field} {op_val[0]} {op_val[1]}" # last one don't have OR | AND, it has only 2 values
+                else:
+                    command += f" {field} {op_val[0]} {op_val[1]} {op_val[2]}"
+        return command
+
     def fetch(self, table, field_list=["*"], conditions={}):
         """This function fetches data from database and returns a list"""
         fetch_command = f'SELECT {",".join(field_list)} from {table}'
         # adding the opitional conditions to the command
         # condition dictionary look like, { field: [operator, value, AND-OR] }, AND-OR value is optional
         if len(conditions) != 0:
-            fetch_command += " WHERE"  # we only want where once
-            if len(conditions) == 1:  # if we have only one condition
-                field = list(conditions.keys())[0]
-                op_val = conditions[field]
-                fetch_command += f" {field} {op_val[0]} {op_val[1]}"
-            else:  # for multiple conditions
-                i = 0
-                for field, op_val in conditions.items():  # appending each condition
-                    i += 1
-                    if i == len(conditions):  # to avoid appending this for last condition
-                        fetch_command += f" {field} {op_val[0]} {op_val[1]}"
-                    else:
-                        fetch_command += f" {field} {op_val[0]} {op_val[1]} {op_val[2]}"
+            fetch_command = self.set_conditions(fetch_command, conditions)
         
         try:
             cursor.execute(fetch_command)
@@ -66,8 +82,17 @@ class DatabaseFunctions:
         for _ in range(len(data) - 1):
             command += "%s, "
         command += "%s)"
-        
-        cursor.execute(command, data)
+                
+        try:
+            cursor.execute(command, data)
+            connection.commit()
+        except errors.ProgrammingError:
+            init_tables()
+            
+    def delete(self, table, conditions):
+        command = f"DELETE FROM {table}"
+        command = self.set_conditions(command, conditions)
+        cursor.execute(command)
         connection.commit()
 
     def import_data(self):
